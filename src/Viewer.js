@@ -91,7 +91,7 @@ const Viewer = () => {
   }, []);
 
   return (
-    <div className="p-6">
+    <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gray-100">
       <h1 className="text-2xl font-bold mb-4">Viewer</h1>
       {!hasJoined && (
         <div className="mb-4">
@@ -110,12 +110,14 @@ const Viewer = () => {
           </button>
         </div>
       )}
-      <video
-        ref={remoteVideoRef}
-        autoPlay
-        playsInline
-        className="w-64 h-48 bg-black rounded-md"
-      ></video>
+      <div className="w-full max-w-4xl">
+        <video
+          ref={remoteVideoRef}
+          autoPlay
+          playsInline
+          className="w-full h-auto bg-black rounded-md"
+        ></video>
+      </div>
     </div>
   );
 };
