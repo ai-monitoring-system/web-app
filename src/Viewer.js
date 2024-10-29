@@ -110,7 +110,7 @@ const Viewer = () => {
           </button>
         </div>
       )}
-      <div className="w-full max-w-4xl">
+      <div className="w-full max-w-2xl">
         <video
           ref={remoteVideoRef}
           autoPlay
