@@ -13,6 +13,9 @@ const Viewer = () => {
   const [callId, setCallId] = useState("");
   const [hasJoined, setHasJoined] = useState(false);
   const [error, setError] = useState("");
+  const [recordingStopped, setRecordingStopped] = useState(false);
+  const [downloadUrl, setDownloadUrl] = useState(null);
+
   const remoteVideoRef = useRef(null);
   const pcRef = useRef(null);
   const remoteStreamRef = useRef(null);
@@ -90,25 +93,16 @@ const Viewer = () => {
 
     pc.onconnectionstatechange = (event) => {
       console.log("Connection state change:", pc.connectionState);
-      if (pc.connectionState === "disconnected") {
-        if (mediaRecorder) mediaRecorder.stop();
-        const p = document.createElement("p");
-        p.textContent = "Recording stopped. Video file loading... ";
-        document.body.appendChild(p);
+      if (pc.connectionState === "disconnected" && mediaRecorder) {
+        mediaRecorder.stop();
+        setRecordingStopped(true); // Set the recording stopped message
       }
     };
 
     mediaRecorder.onstop = () => {
       const blob = new Blob(recordedChunks, { type: "video/webm" });
       const url = URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.textContent = "Download recording";
-      a.textdecoration = "underline";
-      a.style.color = "blue";
-      a.href = url;
-      a.download = "recording.webm";
-      document.body.appendChild(a);
+      setDownloadUrl(url); // Set download URL
     };
 
     setHasJoined(true);
@@ -152,6 +146,15 @@ const Viewer = () => {
           className="w-full h-auto bg-black rounded-md"
         ></video>
       </div>
+      {downloadUrl && (
+        <a
+          href={downloadUrl}
+          download="recording.webm"
+          className="mt-8 px-4 py-2 bg-blue-500 text-white rounded-md transition duration-150 ease-out hover:opacity-80 active:text-blue-200"
+        >
+          Download recording
+        </a>
+      )}
     </div>
   );
 };
