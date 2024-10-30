@@ -12,21 +12,19 @@ const Streamer = () => {
   const webcamVideoRef = useRef(null);
   const localStreamRef = useRef(null);
 
-  // Get available video devices
   useEffect(() => {
     const getVideoDevices = async () => {
       const devices = await navigator.mediaDevices.enumerateDevices();
       const videoInputs = devices.filter((device) => device.kind === "videoinput");
       setVideoDevices(videoInputs);
       if (videoInputs.length > 0) {
-        setSelectedDeviceId(videoInputs[0].deviceId); // Default to the first camera
+        setSelectedDeviceId(videoInputs[0].deviceId);
       }
     };
 
     getVideoDevices();
   }, []);
 
-  // Start camera with the selected device
   const startCamera = async (deviceId) => {
     try {
       const localStream = await navigator.mediaDevices.getUserMedia({
@@ -42,7 +40,6 @@ const Streamer = () => {
     }
   };
 
-  // Cleanup media resources when component unmounts
   useEffect(() => {
     if (selectedDeviceId) {
       startCamera(selectedDeviceId);
