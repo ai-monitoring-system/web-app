@@ -4,7 +4,7 @@
 </p> 
 
 <p align="center"><b>
-Transforming old devices into AI-driven home security solutions
+Transforming old devices into an AI-driven monitoring system.
 </b></p>
 
 ---
