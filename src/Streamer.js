@@ -6,33 +6,53 @@ import { collectIceCandidates, cleanupMediaResources } from "./utils";
 const Streamer = () => {
   const [callId, setCallId] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
+  const [videoDevices, setVideoDevices] = useState([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState("");
   const pcRef = useRef(null);
   const webcamVideoRef = useRef(null);
   const localStreamRef = useRef(null);
 
+  // Get available video devices
   useEffect(() => {
-    const startCamera = async () => {
-      try {
-        const localStream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: false,
-        });
-        localStreamRef.current = localStream;
-        if (webcamVideoRef.current) {
-          webcamVideoRef.current.srcObject = localStream;
-        }
-      } catch (error) {
-        console.error("Error accessing media devices.", error);
+    const getVideoDevices = async () => {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoInputs = devices.filter((device) => device.kind === "videoinput");
+      setVideoDevices(videoInputs);
+      if (videoInputs.length > 0) {
+        setSelectedDeviceId(videoInputs[0].deviceId); // Default to the first camera
       }
     };
 
-    startCamera();
-
-    return () => cleanupMediaResources(pcRef.current, localStreamRef.current, webcamVideoRef);
+    getVideoDevices();
   }, []);
 
+  // Start camera with the selected device
+  const startCamera = async (deviceId) => {
+    try {
+      const localStream = await navigator.mediaDevices.getUserMedia({
+        video: { deviceId: deviceId ? { exact: deviceId } : undefined },
+        audio: false,
+      });
+      localStreamRef.current = localStream;
+      if (webcamVideoRef.current) {
+        webcamVideoRef.current.srcObject = localStream;
+      }
+    } catch (error) {
+      console.error("Error accessing media devices.", error);
+    }
+  };
+
+  // Cleanup media resources when component unmounts
+  useEffect(() => {
+    if (selectedDeviceId) {
+      startCamera(selectedDeviceId);
+    }
+
+    return () =>
+      cleanupMediaResources(pcRef.current, localStreamRef.current, webcamVideoRef);
+  }, [selectedDeviceId]);
+
   const startStreaming = async () => {
-    // Check if the camera has started and localStreamRef has been set
     if (!localStreamRef.current) {
       console.error("No local stream available");
       return;
@@ -56,10 +76,7 @@ const Streamer = () => {
     const offerDescription = await pc.createOffer();
     await pc.setLocalDescription(offerDescription);
 
-    const offer = {
-      sdp: offerDescription.sdp,
-      type: offerDescription.type,
-    };
+    const offer = { sdp: offerDescription.sdp, type: offerDescription.type };
     await setDoc(callDoc, { offer });
 
     onSnapshot(callDoc, (snapshot) => {
@@ -89,6 +106,19 @@ const Streamer = () => {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Streamer</h1>
+
+      <select
+        className="mb-4 p-2 border rounded"
+        value={selectedDeviceId}
+        onChange={(e) => setSelectedDeviceId(e.target.value)}
+      >
+        {videoDevices.map((device) => (
+          <option key={device.deviceId} value={device.deviceId}>
+            {device.label || `Camera ${device.deviceId}`}
+          </option>
+        ))}
+      </select>
+
       <video
         ref={webcamVideoRef}
         autoPlay
@@ -96,6 +126,7 @@ const Streamer = () => {
         muted
         className="w-64 h-48 bg-black rounded-md mb-4"
       ></video>
+
       {!isStreaming && (
         <button
           onClick={startStreaming}
@@ -104,6 +135,7 @@ const Streamer = () => {
           Start Streaming
         </button>
       )}
+
       {callId && (
         <div>
           <p className="mb-2">Share this Call ID with the viewer:</p>
