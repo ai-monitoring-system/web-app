@@ -7,18 +7,19 @@ import {
   setDoc,
 } from "firebase/firestore";
 import { db, servers } from "./config";
-import { collectIceCandidates } from "./utils";
+import { collectIceCandidates, cleanupMediaResources } from "./utils";
 
 const Viewer = () => {
   const [callId, setCallId] = useState("");
   const [hasJoined, setHasJoined] = useState(false);
+  const [error, setError] = useState("");
   const remoteVideoRef = useRef(null);
   const pcRef = useRef(null);
   const remoteStreamRef = useRef(null);
 
   const joinStream = async () => {
     if (!callId) {
-      alert("Please enter a Call ID");
+      setError("Please enter a Call ID");
       return;
     }
 
@@ -46,7 +47,7 @@ const Viewer = () => {
     const callDocSnapshot = await getDoc(callDoc);
     const callData = callDocSnapshot.data();
     if (!callData) {
-      alert("Call ID not found");
+      setError("Call ID not found");
       return;
     }
 
@@ -77,17 +78,7 @@ const Viewer = () => {
   };
 
   useEffect(() => {
-    return () => {
-      if (pcRef.current) {
-        pcRef.current.close();
-      }
-      if (remoteStreamRef.current) {
-        remoteStreamRef.current.getTracks().forEach((track) => track.stop());
-      }
-      if (remoteVideoRef.current) {
-        remoteVideoRef.current.srcObject = null;
-      }
-    };
+    return () => cleanupMediaResources(pcRef.current, remoteStreamRef.current, remoteVideoRef);
   }, []);
 
   return (
@@ -95,6 +86,7 @@ const Viewer = () => {
       <h1 className="text-2xl font-bold mb-4">Viewer</h1>
       {!hasJoined && (
         <div className="mb-4">
+          {error && <p className="text-red-500 mb-2">{error}</p>}
           <input
             type="text"
             placeholder="Enter Call ID"

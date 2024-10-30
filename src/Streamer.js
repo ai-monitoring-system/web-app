@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { collection, doc, setDoc, onSnapshot } from "firebase/firestore";
 import { db, servers } from "./config";
-import { collectIceCandidates } from "./utils";
+import { collectIceCandidates, cleanupMediaResources } from "./utils";
 
 const Streamer = () => {
   const [callId, setCallId] = useState("");
@@ -28,20 +28,16 @@ const Streamer = () => {
 
     startCamera();
 
-    return () => {
-      if (pcRef.current) {
-        pcRef.current.close();
-      }
-      if (localStreamRef.current) {
-        localStreamRef.current.getTracks().forEach((track) => track.stop());
-      }
-      if (webcamVideoRef.current) {
-        webcamVideoRef.current.srcObject = null;
-      }
-    };
+    return () => cleanupMediaResources(pcRef.current, localStreamRef.current, webcamVideoRef);
   }, []);
 
   const startStreaming = async () => {
+    // Check if the camera has started and localStreamRef has been set
+    if (!localStreamRef.current) {
+      console.error("No local stream available");
+      return;
+    }
+
     const pc = new RTCPeerConnection(servers);
     pcRef.current = pc;
 
