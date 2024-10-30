@@ -29,12 +29,26 @@ const Viewer = () => {
     const remoteStream = new MediaStream();
     remoteStreamRef.current = remoteStream;
 
+    let mediaRecorder;
+    const recordedChunks = [];
+
     pc.ontrack = (event) => {
       event.streams[0].getTracks().forEach((track) => {
         remoteStream.addTrack(track);
       });
       if (remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = remoteStream;
+      }
+
+      if (!mediaRecorder) {
+        mediaRecorder = new MediaRecorder(remoteStream);
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            recordedChunks.push(event.data);
+          }
+        };
+
+        mediaRecorder.start();
       }
     };
 
@@ -73,6 +87,29 @@ const Viewer = () => {
         }
       });
     });
+
+    pc.onconnectionstatechange = (event) => {
+      console.log("Connection state change:", pc.connectionState);
+      if (pc.connectionState === "disconnected") {
+        if (mediaRecorder) mediaRecorder.stop();
+        const p = document.createElement("p");
+        p.textContent = "Recording stopped. Video file loading... ";
+        document.body.appendChild(p);
+      }
+    };
+
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(recordedChunks, { type: "video/webm" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.textContent = "Download recording";
+      a.textdecoration = "underline";
+      a.style.color = "blue";
+      a.href = url;
+      a.download = "recording.webm";
+      document.body.appendChild(a);
+    };
 
     setHasJoined(true);
   };
