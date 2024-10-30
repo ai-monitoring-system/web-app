@@ -78,7 +78,12 @@ const Viewer = () => {
   };
 
   useEffect(() => {
-    return () => cleanupMediaResources(pcRef.current, remoteStreamRef.current, remoteVideoRef);
+    return () =>
+      cleanupMediaResources(
+        pcRef.current,
+        remoteStreamRef.current,
+        remoteVideoRef
+      );
   }, []);
 
   return (
@@ -96,7 +101,7 @@ const Viewer = () => {
           />
           <button
             onClick={joinStream}
-            className="px-4 py-2 bg-green-500 text-white rounded-md"
+            className="px-4 py-2 bg-green-500 text-white rounded-md transition duration-150 ease-out hover:opacity-80 active:text-blue-200"
           >
             Join Stream
           </button>

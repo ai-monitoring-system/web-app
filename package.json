@@ -39,5 +39,13 @@
   },
   "devDependencies": {
     "tailwindcss": "^3.4.14"
+  },
+  "prettier": {
+    "semi": true,
+    "singleQuote": false,
+    "tabWidth": 2,
+    "useTabs": false,
+    "printWidth": 80,
+    "endOfLine": "auto"
   }
 }

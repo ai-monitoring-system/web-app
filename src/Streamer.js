@@ -15,7 +15,9 @@ const Streamer = () => {
   useEffect(() => {
     const getVideoDevices = async () => {
       const devices = await navigator.mediaDevices.enumerateDevices();
-      const videoInputs = devices.filter((device) => device.kind === "videoinput");
+      const videoInputs = devices.filter(
+        (device) => device.kind === "videoinput"
+      );
       setVideoDevices(videoInputs);
       if (videoInputs.length > 0) {
         setSelectedDeviceId(videoInputs[0].deviceId);
@@ -46,7 +48,11 @@ const Streamer = () => {
     }
 
     return () =>
-      cleanupMediaResources(pcRef.current, localStreamRef.current, webcamVideoRef);
+      cleanupMediaResources(
+        pcRef.current,
+        localStreamRef.current,
+        webcamVideoRef
+      );
   }, [selectedDeviceId]);
 
   const startStreaming = async () => {
@@ -126,8 +132,9 @@ const Streamer = () => {
 
       {!isStreaming && (
         <button
+          type="button"
           onClick={startStreaming}
-          className="px-4 py-2 bg-green-500 text-white rounded-md"
+          className="px-4 py-2 bg-green-500 text-white rounded-md transition duration-150 ease-out hover:opacity-80 active:text-blue-200"
         >
           Start Streaming
         </button>
