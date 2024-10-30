@@ -96,17 +96,6 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ---
 
-## 📬 Contact
-
-For questions, reach out to the project team:
-
-- **Your Name** - [Email](mailto:hossai85@uwindsor.caom)
-- **GitHub Issues** - For bug reports and feature requests.
-
-
-
----
-
 ## Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
