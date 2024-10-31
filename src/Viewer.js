@@ -20,6 +20,10 @@ const Viewer = () => {
   const pcRef = useRef(null);
   const remoteStreamRef = useRef(null);
 
+  const clipLength = 15;
+  let mediaRecorder;
+  let recordingInterval;
+
   const joinStream = async () => {
     if (!callId) {
       setError("Please enter a Call ID");
@@ -32,10 +36,8 @@ const Viewer = () => {
     const remoteStream = new MediaStream();
     remoteStreamRef.current = remoteStream;
 
-    let mediaRecorder;
-    const recordedChunks = [];
-
     pc.ontrack = (event) => {
+      console.log("ontrack event", event);
       event.streams[0].getTracks().forEach((track) => {
         remoteStream.addTrack(track);
       });
@@ -45,13 +47,35 @@ const Viewer = () => {
 
       if (!mediaRecorder) {
         mediaRecorder = new MediaRecorder(remoteStream);
+        const recordedChunks = [];
+        let blob;
+        let url;
+
         mediaRecorder.ondataavailable = (event) => {
           if (event.data.size > 0) {
             recordedChunks.push(event.data);
           }
         };
 
+        mediaRecorder.onstop = () => {
+          blob = new Blob(recordedChunks, { type: "video/webm" });
+          url = URL.createObjectURL(blob);
+          setDownloadUrl(url);
+
+          if (!recordingStopped) {
+            recordedChunks.splice(0, recordedChunks.length);
+            mediaRecorder.start();
+          }
+        };
+
         mediaRecorder.start();
+
+        recordingInterval = setInterval(() => {
+          console.log("Recording reset");
+          if (!recordingStopped) {
+            mediaRecorder.stop();
+          }
+        }, clipLength * 1000);
       }
     };
 
@@ -94,27 +118,26 @@ const Viewer = () => {
     pc.onconnectionstatechange = (event) => {
       console.log("Connection state change:", pc.connectionState);
       if (pc.connectionState === "disconnected" && mediaRecorder) {
+        clearInterval(recordingInterval);
         mediaRecorder.stop();
-        setRecordingStopped(true); // Set the recording stopped message
+        setRecordingStopped(true);
       }
-    };
-
-    mediaRecorder.onstop = () => {
-      const blob = new Blob(recordedChunks, { type: "video/webm" });
-      const url = URL.createObjectURL(blob);
-      setDownloadUrl(url); // Set download URL
     };
 
     setHasJoined(true);
   };
 
   useEffect(() => {
-    return () =>
+    return () => {
+      if (recordingInterval) {
+        clearInterval(recordingInterval);
+      }
       cleanupMediaResources(
         pcRef.current,
         remoteStreamRef.current,
         remoteVideoRef
       );
+    };
   }, []);
 
   return (
@@ -146,15 +169,17 @@ const Viewer = () => {
           className="w-full h-auto bg-black rounded-md"
         ></video>
       </div>
-      {downloadUrl && (
-        <a
-          href={downloadUrl}
-          download="recording.webm"
-          className="mt-8 px-4 py-2 bg-blue-500 text-white rounded-md transition duration-150 ease-out hover:opacity-80 active:text-blue-200"
-        >
-          Download recording
-        </a>
-      )}
+      {(downloadUrl && (
+        <div className="mt-10">
+          <a
+            href={downloadUrl}
+            download="recording.webm"
+            className="px-4 py-2 bg-blue-500 text-white rounded-md transition duration-150 ease-out hover:opacity-80 active:text-blue-200"
+          >
+            Download Latest Recording ({clipLength}s)
+          </a>
+        </div>
+      )) || <div className="mt-10">Recording Unavailable... Please Wait</div>}
     </div>
   );
 };
