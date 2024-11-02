@@ -11,6 +11,8 @@ const Streamer = () => {
   const pcRef = useRef(null);
   const webcamVideoRef = useRef(null);
   const localStreamRef = useRef(null);
+  const wsRef = useRef(null);
+  let mediaRecorder;
 
   useEffect(() => {
     const getVideoDevices = async () => {
@@ -43,16 +45,42 @@ const Streamer = () => {
   };
 
   useEffect(() => {
+    wsRef.current = new WebSocket("ws://localhost:8080");
+    wsRef.current.binaryType = "arraybuffer";
+
+    wsRef.current.onopen = () => {
+      console.log("Connected to the signaling server");
+    };
+    wsRef.current.onerror = (err) => {
+      console.error(err);
+    };
+    wsRef.current.onclose = () => {
+      console.log("Disconnected from the signaling server");
+    };
+
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     if (selectedDeviceId) {
       startCamera(selectedDeviceId);
     }
 
-    return () =>
+    return () => {
       cleanupMediaResources(
         pcRef.current,
         localStreamRef.current,
         webcamVideoRef
       );
+
+      if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        mediaRecorder.stop();
+      }
+    };
   }, [selectedDeviceId]);
 
   const startStreaming = async () => {
@@ -102,6 +130,21 @@ const Streamer = () => {
         }
       });
     });
+
+    mediaRecorder = new MediaRecorder(localStreamRef.current, {
+      mimeType: "video/webm",
+    });
+
+    mediaRecorder.ondataavailable = (event) => {
+      if (event.data.size > 0) {
+        if (wsRef.current.readyState === WebSocket.OPEN) {
+          wsRef.current.send(event.data);
+          console.log("Sent data chunk of size", event.data.size);
+        }
+      }
+    };
+
+    mediaRecorder.start(100);
 
     setIsStreaming(true);
   };
