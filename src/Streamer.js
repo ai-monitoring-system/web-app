@@ -136,6 +136,7 @@ const Streamer = () => {
     });
 
     mediaRecorder.ondataavailable = (event) => {
+      console.log("Web Socket State", wsRef.current.readyState == 1 ? "OPEN" : "CLOSED");
       if (event.data.size > 0) {
         if (wsRef.current.readyState === WebSocket.OPEN) {
           wsRef.current.send(event.data);
@@ -144,7 +145,7 @@ const Streamer = () => {
       }
     };
 
-    mediaRecorder.start(100);
+    mediaRecorder.start(5000);
 
     setIsStreaming(true);
   };

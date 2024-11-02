@@ -14,6 +14,8 @@ async def video_receiver(websocket, path):
                 print("Received frame:", frame)
     except websockets.exceptions.ConnectionClosed:
         print("WebSocket connection closed")
+    except Exception as e:
+        print("Error:", e)
 
 
 if __name__ == "__main__":
