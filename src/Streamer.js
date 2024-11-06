@@ -9,10 +9,9 @@ const Streamer = () => {
   const [videoDevices, setVideoDevices] = useState([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState("");
   const pcRef = useRef(null);
+  const pcPythonRef = useRef(null); // New RTCPeerConnection for Python
   const webcamVideoRef = useRef(null);
   const localStreamRef = useRef(null);
-  const wsRef = useRef(null);
-  let mediaRecorder;
 
   useEffect(() => {
     const getVideoDevices = async () => {
@@ -45,42 +44,16 @@ const Streamer = () => {
   };
 
   useEffect(() => {
-    wsRef.current = new WebSocket("ws://localhost:8080");
-    wsRef.current.binaryType = "arraybuffer";
-
-    wsRef.current.onopen = () => {
-      console.log("Connected to the signaling server");
-    };
-    wsRef.current.onerror = (err) => {
-      console.error(err);
-    };
-    wsRef.current.onclose = () => {
-      console.log("Disconnected from the signaling server");
-    };
-
-    return () => {
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
-    };
-  }, []);
-
-  useEffect(() => {
     if (selectedDeviceId) {
       startCamera(selectedDeviceId);
     }
 
-    return () => {
+    return () =>
       cleanupMediaResources(
         pcRef.current,
         localStreamRef.current,
         webcamVideoRef
       );
-
-      if (mediaRecorder && mediaRecorder.state !== "inactive") {
-        mediaRecorder.stop();
-      }
-    };
   }, [selectedDeviceId]);
 
   const startStreaming = async () => {
@@ -89,6 +62,7 @@ const Streamer = () => {
       return;
     }
 
+    // Existing WebRTC connection to the Viewer
     const pc = new RTCPeerConnection(servers);
     pcRef.current = pc;
 
@@ -131,23 +105,63 @@ const Streamer = () => {
       });
     });
 
-    mediaRecorder = new MediaRecorder(localStreamRef.current, {
-      mimeType: "video/webm",
+    // New WebRTC connection to the Python script
+    await connectToPythonApp();
+
+    setIsStreaming(true);
+  };
+
+  const connectToPythonApp = async () => {
+    const pcPython = new RTCPeerConnection(servers);
+    pcPythonRef.current = pcPython;
+
+    // Add local tracks to the connection
+    localStreamRef.current.getTracks().forEach((track) => {
+      pcPython.addTrack(track, localStreamRef.current);
     });
 
-    mediaRecorder.ondataavailable = (event) => {
-      console.log("Web Socket State", wsRef.current.readyState == 1 ? "OPEN" : "CLOSED");
-      if (event.data.size > 0) {
-        if (wsRef.current.readyState === WebSocket.OPEN) {
-          wsRef.current.send(event.data);
-          console.log("Sent data chunk of size", event.data.size);
+    // Handle ICE candidates
+    pcPython.onicecandidate = async (event) => {
+      if (event.candidate) {
+        try {
+          await fetch("http://localhost:8080/candidate", {
+            mode: "no-cors",
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(event.candidate.toJSON()),
+          });
+        } catch (error) {
+          console.error("Error sending ICE candidate:", error);
         }
       }
     };
 
-    mediaRecorder.start(5000);
+    // Create offer
+    const offerDescription = await pcPython.createOffer();
+    await pcPython.setLocalDescription(offerDescription);
 
-    setIsStreaming(true);
+    // Send offer to Python script
+    let response;
+    try {
+      response = await fetch("http://localhost:8080/offer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sdp: pcPython.localDescription.sdp,
+          type: pcPython.localDescription.type,
+        }),
+      });
+    } catch (error) {
+      console.error("Error sending offer to Python script:", error);
+      return;
+    }
+
+    const answer = await response.json();
+    const remoteDesc = new RTCSessionDescription(answer);
+    await pcPython.setRemoteDescription(remoteDesc);
+
+    // Handle remote ICE candidates from Python script
+    // Polling or WebSocket could be used here if needed
   };
 
   return (
