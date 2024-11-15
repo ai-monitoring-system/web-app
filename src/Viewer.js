@@ -41,8 +41,6 @@ const Viewer = () => {
       if (!mediaRecorder) {
         mediaRecorder = new MediaRecorder(remoteStream);
         const recordedChunks = [];
-        let blob;
-        let url;
 
         mediaRecorder.ondataavailable = (event) => {
           if (event.data.size > 0) {
@@ -51,8 +49,8 @@ const Viewer = () => {
         };
 
         mediaRecorder.onstop = () => {
-          blob = new Blob(recordedChunks, { type: "video/webm" });
-          url = URL.createObjectURL(blob);
+          const blob = new Blob(recordedChunks, { type: "video/webm" });
+          const url = URL.createObjectURL(blob);
           setDownloadUrl(url);
 
           if (!recordingStopped) {
@@ -107,7 +105,7 @@ const Viewer = () => {
       });
     });
 
-    pc.onconnectionstatechange = (event) => {
+    pc.onconnectionstatechange = () => {
       if (pc.connectionState === "disconnected" && mediaRecorder) {
         clearInterval(recordingInterval);
         mediaRecorder.stop();
@@ -133,7 +131,7 @@ const Viewer = () => {
 
   return (
     <div className="bg-white p-8 rounded-lg shadow-lg max-w-screen-lg mx-auto mt-8 flex flex-col lg:flex-row gap-8">
-      {/* Left Section: Call ID Input */}
+      {/* Left Section: Call ID Input and Controls */}
       <div className="flex flex-col flex-grow">
         <h2 className="text-2xl font-semibold text-gray-800 mb-4">Viewer Mode</h2>
 
@@ -170,7 +168,7 @@ const Viewer = () => {
               download="recording.webm"
               className="px-4 py-2 bg-blue-500 text-white font-semibold rounded-md transition duration-150 ease-in-out hover:bg-blue-600 active:bg-blue-700"
             >
-              Download Latest Recording
+              Download Latest Recording ({clipLength}s)
             </a>
           </div>
         )}
@@ -184,16 +182,14 @@ const Viewer = () => {
       </div>
 
       {/* Right Section: Video Display */}
-      {hasJoined && (
-        <div className="flex justify-center items-center bg-gray-100 rounded-lg shadow-inner p-4 flex-grow h-96">
-          <video
-            ref={remoteVideoRef}
-            autoPlay
-            playsInline
-            className="w-full h-full bg-black rounded-md"
-          ></video>
-        </div>
-      )}
+      <div className="flex justify-center items-center bg-gray-100 rounded-lg shadow-inner p-4 flex-grow h-96">
+        <video
+          ref={remoteVideoRef}
+          autoPlay
+          playsInline
+          className="w-full h-full bg-black rounded-md"
+        ></video>
+      </div>
     </div>
   );
 };
