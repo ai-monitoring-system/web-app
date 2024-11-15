@@ -1,11 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import {
-  collection,
-  doc,
-  getDoc,
-  onSnapshot,
-  setDoc,
-} from "firebase/firestore";
+import { collection, doc, getDoc, onSnapshot, setDoc } from "firebase/firestore";
 import { db, servers } from "./config";
 import { collectIceCandidates, cleanupMediaResources } from "./utils";
 
@@ -37,7 +31,6 @@ const Viewer = () => {
     remoteStreamRef.current = remoteStream;
 
     pc.ontrack = (event) => {
-      console.log("ontrack event", event);
       event.streams[0].getTracks().forEach((track) => {
         remoteStream.addTrack(track);
       });
@@ -71,7 +64,6 @@ const Viewer = () => {
         mediaRecorder.start();
 
         recordingInterval = setInterval(() => {
-          console.log("Recording reset");
           if (!recordingStopped) {
             mediaRecorder.stop();
           }
@@ -116,7 +108,6 @@ const Viewer = () => {
     });
 
     pc.onconnectionstatechange = (event) => {
-      console.log("Connection state change:", pc.connectionState);
       if (pc.connectionState === "disconnected" && mediaRecorder) {
         clearInterval(recordingInterval);
         mediaRecorder.stop();
@@ -141,45 +132,68 @@ const Viewer = () => {
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gray-100">
-      <h1 className="text-2xl font-bold mb-4">Viewer</h1>
-      {!hasJoined && (
-        <div className="mb-4">
-          {error && <p className="text-red-500 mb-2">{error}</p>}
-          <input
-            type="text"
-            placeholder="Enter Call ID"
-            value={callId}
-            onChange={(e) => setCallId(e.target.value)}
-            className="px-2 py-1 border rounded-md mr-2"
-          />
+    <div className="bg-white p-8 rounded-lg shadow-lg max-w-screen-lg mx-auto mt-8 flex flex-col lg:flex-row gap-8">
+      {/* Left Section: Call ID Input */}
+      <div className="flex flex-col flex-grow">
+        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Viewer Mode</h2>
+
+        {/* Input for Call ID */}
+        {!hasJoined && (
+          <div className="mb-4">
+            <label className="block text-gray-600 mb-2">Enter Call ID:</label>
+            <input
+              type="text"
+              placeholder="Enter Call ID"
+              value={callId}
+              onChange={(e) => setCallId(e.target.value)}
+              className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {error && <p className="text-red-500 mt-2">{error}</p>}
+          </div>
+        )}
+
+        {/* Join Stream Button */}
+        {!hasJoined && (
           <button
             onClick={joinStream}
-            className="px-4 py-2 bg-green-500 text-white rounded-md transition duration-150 ease-out hover:opacity-80 active:text-blue-200"
+            className="w-full py-3 mt-2 bg-green-500 text-white font-semibold rounded-md transition duration-150 ease-in-out hover:bg-green-600 active:bg-green-700"
           >
             Join Stream
           </button>
+        )}
+
+        {/* Download Recording Button */}
+        {downloadUrl && (
+          <div className="text-center mt-6">
+            <a
+              href={downloadUrl}
+              download="recording.webm"
+              className="px-4 py-2 bg-blue-500 text-white font-semibold rounded-md transition duration-150 ease-in-out hover:bg-blue-600 active:bg-blue-700"
+            >
+              Download Latest Recording
+            </a>
+          </div>
+        )}
+
+        {/* Recording Status */}
+        {hasJoined && !downloadUrl && (
+          <div className="text-center text-gray-600 mt-6">
+            Recording Unavailable... Please Wait
+          </div>
+        )}
+      </div>
+
+      {/* Right Section: Video Display */}
+      {hasJoined && (
+        <div className="flex justify-center items-center bg-gray-100 rounded-lg shadow-inner p-4 flex-grow h-96">
+          <video
+            ref={remoteVideoRef}
+            autoPlay
+            playsInline
+            className="w-full h-full bg-black rounded-md"
+          ></video>
         </div>
       )}
-      <div className="w-full max-w-2xl">
-        <video
-          ref={remoteVideoRef}
-          autoPlay
-          playsInline
-          className="w-full h-auto bg-black rounded-md"
-        ></video>
-      </div>
-      {(downloadUrl && (
-        <div className="mt-10">
-          <a
-            href={downloadUrl}
-            download="recording.webm"
-            className="px-4 py-2 bg-blue-500 text-white rounded-md transition duration-150 ease-out hover:opacity-80 active:text-blue-200"
-          >
-            Download Latest Recording ({clipLength}s)
-          </a>
-        </div>
-      )) || <div className="mt-10">Recording Unavailable... Please Wait</div>}
     </div>
   );
 };
