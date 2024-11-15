@@ -49,7 +49,7 @@ const App = () => {
             icon: <FaHome />,
           })}
           {renderSidebarButton({
-            page: "videoStorage",
+            page: "video Storage",
             label: "Video Storage",
             icon: <FaVideo />,
           })}

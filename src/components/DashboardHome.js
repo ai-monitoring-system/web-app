@@ -29,15 +29,15 @@ const DashboardHome = () => {
       <section className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {renderQuickActionCard({
           modeType: "streamer",
-          title: "Streamer Mode",
-          description: "Start a live stream for others to view in real-time.",
+          title: "Camera Mode",
+          description: "Start monitoring to allow others to view the live feed in real-time.",
           color: "bg-green-100",
           Icon: FaVideo,
         })}
         {renderQuickActionCard({
           modeType: "viewer",
-          title: "Viewer Mode",
-          description: "Watch a live stream with a unique call ID.",
+          title: "Viewer Access",
+          description: "Watch a live feed from the security camera with a unique access ID.",
           color: "bg-blue-100",
           Icon: FaEye,
         })}
