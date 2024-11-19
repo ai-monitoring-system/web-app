@@ -17,7 +17,9 @@ const Streamer = () => {
     const getVideoDevices = async () => {
       try {
         const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoInputs = devices.filter((device) => device.kind === "videoinput");
+        const videoInputs = devices.filter(
+          (device) => device.kind === "videoinput"
+        );
         setVideoDevices(videoInputs);
         if (videoInputs.length > 0) {
           setSelectedDeviceId(videoInputs[0].deviceId);
@@ -52,7 +54,11 @@ const Streamer = () => {
 
     // Cleanup media resources on component unmount
     return () => {
-      cleanupMediaResources(pcRef.current, localStreamRef.current, webcamVideoRef);
+      cleanupMediaResources(
+        pcRef.current,
+        localStreamRef.current,
+        webcamVideoRef
+      );
     };
   }, [selectedDeviceId]);
 
@@ -121,11 +127,15 @@ const Streamer = () => {
     <div className="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 p-8 rounded-lg shadow-lg max-w-screen-lg mx-auto mt-8 flex flex-col lg:flex-row gap-8">
       {/* Left Section: Controls */}
       <div className="flex flex-col flex-grow">
-        <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-4">Streamer Mode</h2>
+        <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-4">
+          Streamer Mode
+        </h2>
 
         {/* Camera Selector */}
         <div className="mb-4">
-          <label className="block text-gray-600 dark:text-gray-400 mb-2">Select Camera:</label>
+          <label className="block text-gray-600 dark:text-gray-400 mb-2">
+            Select Camera:
+          </label>
           <select
             className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
             value={selectedDeviceId}
@@ -140,18 +150,26 @@ const Streamer = () => {
         </div>
 
         {/* Start Streaming Button */}
-        <button
-          type="button"
-          onClick={startStreaming}
-          className="w-full py-3 bg-green-500 dark:bg-green-600 text-white font-semibold rounded-md transition duration-150 ease-in-out hover:bg-green-600 dark:hover:bg-green-700 mt-4"
-        >
-          {isStreaming ? "Streaming..." : "Start Streaming"}
-        </button>
+        {isStreaming ? (
+          <div className="text-center w-full py-3 bg-green-500 dark:bg-green-600 text-white font-semibold rounded-md transition duration-150 ease-in-out mt-4">
+            Streaming...
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={startStreaming}
+            className="w-full py-3 bg-green-500 dark:bg-green-600 text-white font-semibold rounded-md transition duration-150 ease-in-out hover:bg-green-600 dark:hover:bg-green-700 mt-4"
+          >
+            Start Streaming
+          </button>
+        )}
 
         {/* Display Call ID */}
         {callId && (
           <div className="mt-6 text-center">
-            <p className="text-gray-600 dark:text-gray-400">Share this Call ID with the viewer:</p>
+            <p className="text-gray-600 dark:text-gray-400">
+              Share this Call ID with the viewer:
+            </p>
             <p className="font-mono bg-gray-100 dark:bg-gray-700 p-2 rounded-md mt-2 text-gray-800 dark:text-gray-100">
               {callId}
             </p>
