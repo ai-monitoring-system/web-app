@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { collection, doc, setDoc, onSnapshot } from "firebase/firestore";
-import { db, servers } from "./config";
+import { auth, db, servers } from "./config";
 import { collectIceCandidates, cleanupMediaResources } from "./utils";
 
 const Streamer = () => {
@@ -77,12 +77,12 @@ const Streamer = () => {
         pc.addTrack(track, localStreamRef.current);
       });
 
-      // Create a Firestore document to manage the call
-      const callDoc = doc(collection(db, "calls"));
+      // Create a Firestore document to manage the call with the user ID as the doc ID
+      const callDoc = doc(db, "calls", auth.currentUser.uid);
       const offerCandidates = collection(callDoc, "offerCandidates");
       const answerCandidates = collection(callDoc, "answerCandidates");
 
-      setCallId(callDoc.id);
+      setCallId(callDoc.id); // This will now be the user's ID
 
       // Collect ICE candidates
       collectIceCandidates(pc, offerCandidates);
@@ -91,7 +91,11 @@ const Streamer = () => {
       const offerDescription = await pc.createOffer();
       await pc.setLocalDescription(offerDescription);
 
-      const offer = { sdp: offerDescription.sdp, type: offerDescription.type };
+      const offer = {
+        sdp: offerDescription.sdp,
+        type: offerDescription.type,
+        userId: auth.currentUser.uid,
+      };
       await setDoc(callDoc, { offer });
 
       // Listen for answer and update connection
@@ -162,18 +166,6 @@ const Streamer = () => {
           >
             Start Streaming
           </button>
-        )}
-
-        {/* Display Call ID */}
-        {callId && (
-          <div className="mt-6 text-center">
-            <p className="text-gray-600 dark:text-gray-400">
-              Share this Call ID with the viewer:
-            </p>
-            <p className="font-mono bg-gray-100 dark:bg-gray-700 p-2 rounded-md mt-2 text-gray-800 dark:text-gray-100">
-              {callId}
-            </p>
-          </div>
         )}
       </div>
 
