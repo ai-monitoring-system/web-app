@@ -1,5 +1,15 @@
-import React, { useState } from "react";
-import { FaUser, FaCog, FaVideo, FaHome, FaBars, FaMoon, FaSun } from "react-icons/fa";
+import React, { useState, useEffect } from "react";
+import {
+  FaCog,
+  FaHeart,
+  FaVideo,
+  FaHome,
+  FaBars,
+  FaMoon,
+  FaSun,
+  FaBell,
+  FaUser,
+} from "react-icons/fa";
 import "animate.css";
 import "./animations.css";
 import SidebarButton from "./components/SidebarButton";
@@ -7,6 +17,8 @@ import Profile from "./components/Profile";
 import Settings from "./components/Settings";
 import VideoStorage from "./components/VideoStorage";
 import DashboardHome from "./components/DashboardHome";
+import { auth } from "./config"; // Import Firebase auth object
+import { onAuthStateChanged } from "firebase/auth";
 
 const App = () => {
   const [selectedPage, setSelectedPage] = useState("home");
@@ -14,6 +26,17 @@ const App = () => {
   const [darkMode, setDarkMode] = useState(
     localStorage.getItem("darkMode") === "true" // Load user preference
   );
+  const [user, setUser] = useState(null); // Track the authenticated user
+
+  useEffect(() => {
+    // Monitor the authentication state
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser); // Update the user state when auth state changes
+    });
+
+    // Cleanup subscription on component unmount
+    return () => unsubscribe();
+  }, []);
 
   const toggleSidebar = () => setIsSidebarCollapsed(!isSidebarCollapsed);
 
@@ -59,7 +82,7 @@ const App = () => {
             <SidebarButton
               page="profile"
               label="Profile"
-              icon={<FaUser />}
+              icon={<FaUser />} // Restored icon for Profile
               onClick={() => setSelectedPage("profile")}
               isSelected={selectedPage === "profile"}
               isCollapsed={isSidebarCollapsed}
@@ -79,17 +102,45 @@ const App = () => {
         <div className="flex flex-col flex-grow">
           {/* Header */}
           <header className="bg-white dark:bg-gray-800 shadow-md p-4 flex justify-between items-center">
-            <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
-              {selectedPage.charAt(0).toUpperCase() + selectedPage.slice(1)}
-            </h1>
-            <button
-              onClick={toggleDarkMode}
-              className="flex items-center space-x-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 font-semibold py-2 px-4 rounded-md focus:outline-none"
-              aria-label="Toggle Dark Mode"
-            >
-              {darkMode ? <FaSun /> : <FaMoon />}
-              <span>{darkMode ? "Light Mode" : "Dark Mode"}</span>
-            </button>
+            <div className="flex items-center space-x-4">
+              <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+                {selectedPage.charAt(0).toUpperCase() + selectedPage.slice(1)}
+              </h1>
+            </div>
+
+            <div className="flex items-center space-x-8">
+              {/* Dark Mode Toggle */}
+              <button
+                onClick={toggleDarkMode}
+                className="flex items-center space-x-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 font-semibold py-2 px-4 rounded-md focus:outline-none"
+                aria-label="Toggle Dark Mode"
+              >
+                {darkMode ? <FaSun /> : <FaMoon />}
+                <span>{darkMode ? "Light Mode" : "Dark Mode"}</span>
+              </button>
+
+              {/* Notification Bell */}
+              <FaBell className="text-gray-800 dark:text-gray-300 text-xl cursor-pointer hover:scale-110 transition-transform" />
+
+              {/* Heart Icon */}
+              <FaHeart className="text-red-500 text-xl cursor-pointer hover:scale-110 transition-transform" />
+
+              {/* Gear/Settings Icon */}
+              <FaCog className="text-gray-800 dark:text-gray-300 text-xl cursor-pointer hover:scale-110 transition-transform" />
+
+              {/* Profile Placeholder or Image */}
+              {user ? (
+                <img
+                  src={user.photoURL || "https://via.placeholder.com/40"} // Fallback to placeholder
+                  alt={user.displayName || "Profile"}
+                  className="h-10 w-10 rounded-full object-cover cursor-pointer hover:scale-110 transition-transform"
+                />
+              ) : (
+                <div className="h-10 w-10 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-gray-800 dark:text-gray-300 text-xl">
+                  <FaUser />
+                </div>
+              )}
+            </div>
           </header>
 
           {/* Main View */}
