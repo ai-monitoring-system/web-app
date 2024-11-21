@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import {
   FaCog,
   FaHeart,
@@ -17,8 +18,11 @@ import Profile from "./components/Profile";
 import Settings from "./components/Settings";
 import VideoStorage from "./components/VideoStorage";
 import DashboardHome from "./components/DashboardHome";
+import SignIn from "./components/SignIn"; // Import SignIn component
+import SignUp from "./components/SignUp"; // Import SignUp component
 import { auth } from "./config"; // Import Firebase auth object
 import { onAuthStateChanged } from "firebase/auth";
+
 
 const App = () => {
   const [selectedPage, setSelectedPage] = useState("home");
