@@ -123,35 +123,70 @@ const Viewer = () => {
   }, []);
 
   return (
-    <div className="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 p-8 rounded-lg shadow-lg max-w-screen-lg mx-auto mt-8 flex flex-col lg:flex-row gap-8">
-      <div className="flex flex-col flex-grow">
-        <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-4">
+    <div className={`bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 p-6 rounded-lg shadow-lg ${hasJoined ? 'w-[1400px]' : 'w-[400px]'} mx-auto mt-12 relative`}>
+      {/* Header Section */}
+      <div
+        className={`flex justify-between items-center ${
+          hasJoined ? "absolute top-4 left-6 right-6" : "mt-4"
+        }`}
+      >
+        <h2 className={`text-3xl font-semibold text-gray-800 dark:text-gray-100 ${hasJoined ? 'text-center w-full ml-16' : 'text-center w-full ml-6'}`}>
           Viewer Mode
         </h2>
-
-        {loading ? (
-          <p className="text-gray-600 dark:text-gray-400 mt-4">
-            Checking for stream availability...
-          </p>
-        ) : error ? (
-          <p className="text-red-500 mt-4">{error}</p>
-        ) : !hasJoined ? (
-          <button
-            onClick={joinStream}
-            className="w-full py-3 mt-2 bg-green-500 dark:bg-green-600 text-white font-semibold rounded-md transition duration-150 ease-in-out hover:bg-green-600 dark:hover:bg-green-700"
-          >
-            Join Call
-          </button>
-        ) : null}
+        {hasJoined && (
+  <div className="flex items-center gap-1 bg-green-50 dark:bg-green-800 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-200 rounded-md px-4 py-1 shadow-md">
+    <span className="text-sm font-semibold">Connected</span>
+    {/* Green Ping Animation */}
+    <div className="relative flex items-center justify-center w-3.5 h-3.5">
+      <span className="absolute inline-flex w-full h-full bg-green-500 opacity-75 rounded-full animate-ping"></span>
+      <span className="relative inline-flex w-2 h-2 bg-green-600 rounded-full"></span>
+    </div>
+  </div>
+)}
       </div>
 
-      <div className="flex justify-center items-center bg-gray-100 dark:bg-gray-700 rounded-lg shadow-inner p-4 flex-grow h-96">
-        <video
-          ref={remoteVideoRef}
-          autoPlay
-          playsInline
-          className="w-full h-full bg-black rounded-md"
-        ></video>
+      {/* Main Content */}
+      <div
+        className={`${
+          hasJoined ? "mt-16" : "flex flex-col lg:flex-row gap-12"
+        }`}
+      >
+        {!hasJoined && (
+          <div className="flex flex-col flex-grow items-center">
+            {loading ? (
+              <p className="text-gray-600 dark:text-gray-400 mt-4">
+                Checking for stream availability...
+              </p>
+            ) : error ? (
+              <div className="bg-red-50 dark:bg-red-800 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-200 rounded-lg p-3 shadow-md mt-6 max-w-[300px]">
+                <span className="text-md font-semibold">{error}</span>
+              </div>
+            ) : (
+              <div className="flex justify-center w-full">
+                <button
+                  onClick={joinStream}
+                  className="w-full max-w-[300px] py-4 bg-green-500 dark:bg-green-600 text-white font-semibold rounded-lg text-lg transition duration-150 ease-in-out hover:bg-green-600 dark:hover:bg-green-700 mt-6"
+                >
+                  Join Call
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+        <div
+          className={`${
+            hasJoined
+              ? "flex justify-center items-center bg-gray-100 dark:bg-gray-700 rounded-lg shadow-inner w-full h-[600px]"
+              : "hidden"
+          }`}
+        >
+          <video
+            ref={remoteVideoRef}
+            autoPlay
+            playsInline
+            className="w-full h-full bg-black rounded-lg"
+          ></video>
+        </div>
       </div>
     </div>
   );

@@ -128,20 +128,20 @@ const Streamer = () => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 p-8 rounded-lg shadow-lg max-w-screen-lg mx-auto mt-8 flex flex-col lg:flex-row gap-8">
+    <div className="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 p-12 rounded-lg shadow-lg w-[1400px] mx-auto mt-12 flex flex-col lg:flex-row gap-12">
       {/* Left Section: Controls */}
       <div className="flex flex-col flex-grow">
-        <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-4">
+        <h2 className="text-3xl font-semibold text-gray-800 dark:text-gray-100 mb-6">
           Streamer Mode
         </h2>
-
+  
         {/* Camera Selector */}
-        <div className="mb-4">
-          <label className="block text-gray-600 dark:text-gray-400 mb-2">
+        <div className="mb-6">
+          <label className="block text-gray-600 dark:text-gray-400 mb-2 text-lg">
             Select Camera:
           </label>
           <select
-            className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
+            className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 text-lg"
             value={selectedDeviceId}
             onChange={(e) => setSelectedDeviceId(e.target.value)}
           >
@@ -152,31 +152,31 @@ const Streamer = () => {
             ))}
           </select>
         </div>
-
+  
         {/* Start Streaming Button */}
         {isStreaming ? (
-          <div className="text-center w-full py-3 bg-green-500 dark:bg-green-600 text-white font-semibold rounded-md transition duration-150 ease-in-out mt-4">
+          <div className="text-center w-full py-4 bg-green-500 dark:bg-green-600 text-white font-semibold rounded-lg text-lg mt-6">
             Streaming...
           </div>
         ) : (
           <button
             type="button"
             onClick={startStreaming}
-            className="w-full py-3 bg-green-500 dark:bg-green-600 text-white font-semibold rounded-md transition duration-150 ease-in-out hover:bg-green-600 dark:hover:bg-green-700 mt-4"
+            className="w-full py-4 bg-green-500 dark:bg-green-600 text-white font-semibold rounded-lg text-lg transition duration-150 ease-in-out hover:bg-green-600 dark:hover:bg-green-700 mt-6"
           >
             Start Streaming
           </button>
         )}
       </div>
-
+  
       {/* Right Section: Video Preview */}
-      <div className="flex justify-center items-center bg-gray-100 dark:bg-gray-700 rounded-lg shadow-inner p-4 flex-grow h-96">
+      <div className="flex justify-center items-center bg-gray-100 dark:bg-gray-700 rounded-lg shadow-inner p-6 w-[1200px] h-[600px]">
         <video
           ref={webcamVideoRef}
           autoPlay
           playsInline
           muted
-          className="w-full h-full bg-black rounded-md"
+          className="w-full h-full bg-black rounded-lg"
         ></video>
       </div>
     </div>
