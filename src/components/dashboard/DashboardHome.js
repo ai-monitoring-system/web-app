@@ -3,7 +3,7 @@ import Streamer from "../../Streamer";
 import Viewer from "../../Viewer";
 import { FaVideo, FaEye, FaChartLine } from "react-icons/fa";
 import { useInView } from "react-intersection-observer";
-import { auth } from "../../config";
+import { auth } from "../../utils/config";
 
 const DashboardHome = () => {
   const [mode, setMode] = useState(null);

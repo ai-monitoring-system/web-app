@@ -20,8 +20,9 @@ import VideoStorage from "./components/dashboard/VideoStorage";
 import DashboardHome from "./components/dashboard/DashboardHome";
 import SignIn from "./app/(Auth)/signin/SignIn";
 import SignUp from "./app/(Auth)/signup/SignUp";
-import { auth } from "./config"; // Import Firebase auth object
+import { auth } from "./utils/config"; // Import Firebase auth object
 import { onAuthStateChanged } from "firebase/auth";
+import { AppConfig } from "./utils/AppConfig";
 
 
 const App = () => {
@@ -157,7 +158,7 @@ const App = () => {
 
           {/* Footer */}
           <footer className="text-center text-gray-500 text-sm py-4 opacity-0 animate__animated animate__fadeIn animate__delay-1s">
-            &copy; {new Date().getFullYear()} AI Monitoring System
+            {AppConfig.footerText}
           </footer>
         </div>
       </div>

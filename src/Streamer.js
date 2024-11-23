@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import { collection, doc, setDoc, onSnapshot } from "firebase/firestore";
-import { auth, db, servers } from "./config";
-import { collectIceCandidates, cleanupMediaResources } from "./utils";
+import { auth, db, servers } from "./utils/config";
+import { collectIceCandidates, cleanupMediaResources } from "./utils/utils";
 
 const Streamer = () => {
   const [callId, setCallId] = useState("");

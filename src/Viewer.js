@@ -6,8 +6,8 @@ import {
   onSnapshot,
   setDoc,
 } from "firebase/firestore";
-import { auth, db, servers } from "./config";
-import { collectIceCandidates, cleanupMediaResources } from "./utils";
+import { auth, db, servers } from "./utils/config";
+import { collectIceCandidates, cleanupMediaResources } from "./utils/utils";
 
 const Viewer = () => {
   const [callId, setCallId] = useState("");
