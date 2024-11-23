@@ -128,7 +128,7 @@ const Streamer = () => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 p-12 rounded-lg shadow-lg w-[1400px] mx-auto mt-12 flex flex-col lg:flex-row gap-12">
+    <div className="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 p-6 rounded-lg shadow-lg mx-auto mt-12 flex flex-col gap-12 max-w-screen-xl">
       {/* Left Section: Controls */}
       <div className="flex flex-col flex-grow">
         <h2 className="text-3xl font-semibold text-gray-800 dark:text-gray-100 mb-6">
@@ -170,13 +170,13 @@ const Streamer = () => {
       </div>
   
       {/* Right Section: Video Preview */}
-      <div className="flex justify-center items-center bg-gray-100 dark:bg-gray-700 rounded-lg shadow-inner p-6 w-[1200px] h-[600px]">
+      <div className="flex justify-center items-center bg-gray-100 dark:bg-gray-700 rounded-lg shadow-inner p-6 w-full lg:w-[800px] mx-auto">
         <video
           ref={webcamVideoRef}
           autoPlay
           playsInline
           muted
-          className="w-full h-full bg-black rounded-lg"
+          className="w-full h-auto max-h-[400px] bg-black rounded-lg"
         ></video>
       </div>
     </div>

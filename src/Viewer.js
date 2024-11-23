@@ -123,34 +123,25 @@ const Viewer = () => {
   }, []);
 
   return (
-    <div className={`bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 p-6 rounded-lg shadow-lg ${hasJoined ? 'w-[1400px]' : 'w-[400px]'} mx-auto mt-12 relative`}>
+    <div className="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 p-6 rounded-lg shadow-lg mx-auto mt-12 max-w-screen-xl">
       {/* Header Section */}
-      <div
-        className={`flex justify-between items-center ${
-          hasJoined ? "absolute top-4 left-6 right-6" : "mt-4"
-        }`}
-      >
-        <h2 className={`text-3xl font-semibold text-gray-800 dark:text-gray-100 ${hasJoined ? 'text-center w-full ml-16' : 'text-center w-full ml-6'}`}>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-3xl font-semibold text-gray-800 dark:text-gray-100">
           Viewer Mode
         </h2>
         {hasJoined && (
-  <div className="flex items-center gap-1 bg-green-50 dark:bg-green-800 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-200 rounded-md px-4 py-1 shadow-md">
-    <span className="text-sm font-semibold">Connected</span>
-    {/* Green Ping Animation */}
-    <div className="relative flex items-center justify-center w-3.5 h-3.5">
-      <span className="absolute inline-flex w-full h-full bg-green-500 opacity-75 rounded-full animate-ping"></span>
-      <span className="relative inline-flex w-2 h-2 bg-green-600 rounded-full"></span>
-    </div>
-  </div>
-)}
+          <div className="flex items-center gap-1 bg-green-50 dark:bg-green-800 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-200 rounded-md px-4 py-1 shadow-md">
+            <span className="text-sm font-semibold">Connected</span>
+            <div className="relative flex items-center justify-center w-3.5 h-3.5">
+              <span className="absolute inline-flex w-full h-full bg-green-500 opacity-75 rounded-full animate-ping"></span>
+              <span className="relative inline-flex w-2 h-2 bg-green-600 rounded-full"></span>
+            </div>
+          </div>
+        )}
       </div>
-
+  
       {/* Main Content */}
-      <div
-        className={`${
-          hasJoined ? "mt-16" : "flex flex-col lg:flex-row gap-12"
-        }`}
-      >
+      <div className="flex flex-col lg:flex-row gap-12">
         {!hasJoined && (
           <div className="flex flex-col flex-grow items-center">
             {loading ? (
@@ -173,18 +164,17 @@ const Viewer = () => {
             )}
           </div>
         )}
+  
         <div
           className={`${
-            hasJoined
-              ? "flex justify-center items-center bg-gray-100 dark:bg-gray-700 rounded-lg shadow-inner w-full h-[600px]"
-              : "hidden"
-          }`}
+            hasJoined ? "flex" : "hidden"
+          } justify-center items-center bg-gray-100 dark:bg-gray-700 rounded-lg shadow-inner w-full lg:w-[800px] mx-auto`}
         >
           <video
             ref={remoteVideoRef}
             autoPlay
             playsInline
-            className="w-full h-full bg-black rounded-lg"
+            className="w-full h-auto max-h-[400px] bg-black rounded-lg"
           ></video>
         </div>
       </div>
