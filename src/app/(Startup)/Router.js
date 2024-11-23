@@ -1,8 +1,8 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import App from "./App";
-import SignIn from "./components/SignIn";
-import SignUp from "./components/SignUp";
+import App from "../../App";
+import SignIn from "../(Auth)/signin/SignIn";
+import SignUp from "../(Auth)/signup/SignUp";
 
 const AppRouter = () => {
 //   const isAuthenticated = !!localStorage.getItem("userToken"); // Replace with your auth logic

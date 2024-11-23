@@ -1,9 +1,9 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import App from "./App";
-import "./index.css"; // Your custom styles (if any)
+import "./styles/index.css";
 import "rsuite/dist/rsuite.min.css"; // Import rsuite styles
-import AppRouter from "./Router"; // Import the router
+import AppRouter from "./app/(Startup)/Router";
 
 ReactDOM.render(
   <React.StrictMode>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { signInWithPopup, signOut, onAuthStateChanged, updateProfile } from "firebase/auth";
-import { auth, provider } from "../config";
+import { auth, provider } from "../../config";
 import { FaInfoCircle, FaKey, FaRegSmile } from "react-icons/fa";
 
 const Profile = () => {

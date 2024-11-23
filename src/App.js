@@ -12,14 +12,14 @@ import {
   FaUser,
 } from "react-icons/fa";
 import "animate.css";
-import "./animations.css";
-import SidebarButton from "./components/SidebarButton";
-import Profile from "./components/Profile";
-import Settings from "./components/Settings";
-import VideoStorage from "./components/VideoStorage";
-import DashboardHome from "./components/DashboardHome";
-import SignIn from "./components/SignIn"; // Import SignIn component
-import SignUp from "./components/SignUp"; // Import SignUp component
+import "./styles/animations.css";
+import SidebarButton from "./components/layout/SidebarButton";
+import Profile from "./components/dashboard/Profile";
+import Settings from "./components/dashboard/Settings";
+import VideoStorage from "./components/dashboard/VideoStorage";
+import DashboardHome from "./components/dashboard/DashboardHome";
+import SignIn from "./app/(Auth)/signin/SignIn";
+import SignUp from "./app/(Auth)/signup/SignUp";
 import { auth } from "./config"; // Import Firebase auth object
 import { onAuthStateChanged } from "firebase/auth";
 
