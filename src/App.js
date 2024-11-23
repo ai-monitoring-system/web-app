@@ -135,7 +135,7 @@ const App = () => {
               {/* Profile Placeholder or Image */}
               {user ? (
                 <img
-                  src={user.photoURL || "https://via.placeholder.com/40"} // Fallback to placeholder
+                  src={user.photoURL ? user.photoURL : "https://via.placeholder.com/40"}
                   alt={user.displayName || "Profile"}
                   className="h-10 w-10 rounded-full object-cover cursor-pointer hover:scale-110 transition-transform"
                 />
