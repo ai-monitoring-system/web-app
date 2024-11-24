@@ -33,6 +33,51 @@
   transform: translateY(-5px); /* Subtle upward movement */
 }
 
+/* Adjusted Image Placement Fixes */
+.sectionWrapper .section .imageContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+  padding: 1rem; /* Add padding for spacing */
+  max-width: 100%; /* Ensure the container doesn't overflow */
+  height: auto; /* Automatically adjust height based on content */
+}
+
+.sectionWrapper .section .imageContainer .image {
+  width: 100%; /* Ensure the image doesn't overflow horizontally */
+  max-width: 400px; /* Restrict the maximum width */
+  height: auto; /* Maintain the aspect ratio */
+  object-fit: contain; /* Ensure the image fits within the container without cropping */
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth hover animation */
+}
+
+.sectionWrapper .section .imageContainer .image:hover {
+  transform: scale(1.05); /* Slight zoom-in effect on hover */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Stronger shadow on hover */
+}
+
+/* Ensure the container height doesn't expand unnecessarily */
+.sectionWrapper .section .imageContainer {
+  overflow: hidden; /* Prevent content spill */
+  aspect-ratio: 4 / 3; /* Maintain a specific aspect ratio for the container */
+}
+
+/* For Smaller Screens */
+@media (max-width: 768px) {
+  .sectionWrapper .section .imageContainer {
+    padding: 0.5rem; /* Reduce padding on smaller screens */
+    aspect-ratio: 16 / 9; /* Adjust the aspect ratio for smaller screens */
+  }
+
+  .sectionWrapper .section .imageContainer .image {
+    width: 90%; /* Allow more flexibility on smaller screens */
+    max-width: none; /* Disable max-width for responsiveness */
+  }
+}
+
 /* Card Styling */
 .card {
   background-color: white;
@@ -113,16 +158,6 @@ nav[aria-label="breadcrumb"] a:hover {
   color: #1d4ed8; /* Tailwind's blue-600 */
 }
 
-/* Quick Action Cards */
-.quick-action-card {
-  transition: box-shadow 0.3s ease-in-out, transform 0.2s ease;
-}
-
-.quick-action-card:hover {
-  box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.1);
-  transform: scale(1.05);
-}
-
 /* Stats Overview */
 .stats-card {
   display: flex;
@@ -141,7 +176,12 @@ nav[aria-label="breadcrumb"] a:hover {
 /* Button Hover */
 button:hover {
   background-color: rgba(255, 255, 255, 0.2);
-  transition: background-color 0.3s ease;
+  transition: background-color 0.2s ease;
+    text-decoration: none; 
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); 
+    /* transform: translateY(-2px); slow */
+    transition: transform 0.5s ease;
+    transform: translateY(-2px); /* slow */
 }
 
 /* Card Hover */
@@ -149,4 +189,26 @@ button:hover {
   transform: scale(1.05);
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Button Underline Navbar */
+.nav-link {
+  position: relative;
+  display: inline-block; /* Required for proper positioning */
+  text-decoration: none; /* Prevent text underline */
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: -12px; /* Adjust position of underline farther below the button */
+  left: 0;
+  width: 0;
+  height: 3px; /* Thickness of the underline */
+  background-color: #1d4ed8; /* Underline color */
+  transition: width 0.3s ease-in-out; /* Smooth animation */
+}
+
+.nav-link:hover::after {
+  width: 100%; /* Expand underline on hover */
 }

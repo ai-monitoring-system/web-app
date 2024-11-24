@@ -1,0 +1,163 @@
+@import "./variables.scss";
+
+.sectionWrapper {
+  width: 100%;
+  background-color: #fff;
+  border-bottom: 1px solid #eaeaea;
+
+  .section {
+    @include flex($align: center, $justify: center, $gap: 5rem); // Increased gap for better spacing
+    width: 65%; // Slightly reduced width for padding from sides
+    max-width: var(--max-width);
+    padding: 4rem 1rem; // More padding for better spacing
+    margin: 0 auto;
+    text-align: center;
+
+    &.reverse {
+      flex-direction: row-reverse; // Reverse image and text for alternate sections
+    }
+
+    .imageContainer {
+      flex-basis: 40%; // Reduced width for image
+      max-width: 450px; // Cap the image size
+      position: relative;
+      aspect-ratio: 16 / 9; // Maintain a consistent aspect ratio
+      border-radius: 10px; // Rounded corners for better aesthetics
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); // Subtle shadow for depth
+      overflow: hidden; // Prevent image overflow
+
+      .image {
+        width: 100%;
+        height: 100%;
+        object-fit: contain; // Ensure the image fits within the container without cropping
+      }
+    }
+
+    .contentContainer {
+      @include flex(
+        $align: center,
+        $justify: center,
+        $direction: column,
+        $gap: 1rem
+      );
+      flex-basis: 40%; // Increased text container width
+      padding: 1rem 2rem; // More padding for better spacing
+      text-align: center; // Align text to the left for better readability
+
+      .heading {
+        @include font(
+          $size: 1.60rem, // Slightly smaller size
+          $weight: 720, // Bolder weight
+          $color: #191715,
+          $lineHeight: 2rem
+        );
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif; // New font family
+        margin-bottom: 0.5rem; // Add spacing below the heading
+      }
+
+      .description {
+        @include font(
+          $size: 1.30rem,
+          $lineHeight: 1.6rem,
+          $color: rgb(0, 0, 0),
+          $weight: 420
+        );
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif; // New font family
+        font-size: 1.09rem;
+        color: #191715; // Softer color for descriptions
+        margin: 0 auto;
+        max-width: 100%; // Restrict the text width for readability
+      }
+
+      .button {
+        background-color: var(--primary-color); // Use primary color for buttons
+        color: #fff; // White text color
+        padding: 0.75rem 1.5rem; // Add padding for better button size
+        border-radius: 5px; // Rounded corners for buttons
+        text-decoration: none; // Remove underline
+        transition: background-color 0.3s ease; // Smooth transition for hover effect
+
+        &:hover {
+          background-color: var(--primary-color-dark); // Darker shade on hover
+        }
+      }
+    }
+  }
+}
+
+.background {
+  @include fillParent;
+  position: absolute;
+  z-index: -1;
+  background-color: rgba(253, 250, 239, 0.75); // Light beige background
+}
+
+.backgroundImage {
+  @include size($width: 100%, $height: 100vh);
+  position: absolute;
+  overflow: hidden;
+  z-index: -1;
+  opacity: 0.1; // Faint background pattern
+}
+
+.heroSectionWrapper {
+  @include flex($direction: column, $align: center, $justify: center);
+  width: 100%;
+  min-height: 100vh;
+
+  .heading {
+    @include font(
+      $size: 7rem,
+      $weight: 700,
+      $lineHeight: 4.5rem,
+      $color: var(--secondary-color)
+    );
+    margin-bottom: 4rem;
+    z-index: 1 !important;
+  }
+
+  .highlight {
+    color: var(--primary-color); // Highlighted text in primary color
+  }
+
+  .description {
+    @include font($size: 1.5rem, $weight: 700, $color: var(--secondary-color));
+    margin-bottom: 2rem;
+  }
+}
+
+@media (max-width: $mobileWidth) {
+  .heroSectionWrapper {
+    .heading {
+      font-size: 5rem; // Smaller font size for headings on mobile
+      margin-bottom: 2rem;
+    }
+
+    .description {
+      font-size: 1.2rem; // Adjust font size for better readability
+    }
+  }
+
+  .sectionWrapper {
+    .section {
+      flex-direction: column; // Stack image and text vertically
+      flex-wrap: wrap;
+      gap: 2rem; // Adjust gap for better spacing on mobile
+      padding: 1rem 2rem;
+
+      &:last-child {
+        padding-bottom: 5rem; // Add spacing for the last section
+      }
+    }
+
+    .imageContainer {
+      width: 100%; // Full-width images for mobile
+      max-width: none; // Remove width restriction on smaller screens
+    }
+
+    .contentContainer {
+      width: 100%; // Full-width content for mobile
+      padding: 1rem 2rem; // Reduced padding for smaller screens
+    }
+  }
+}

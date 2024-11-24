@@ -1,13 +1,16 @@
 import React from "react";
-import ReactDOM from "react-dom";
+import ReactDOM from "react-dom/client"; // Use React 18+ compatible method
+import { BrowserRouter as Router } from "react-router-dom"; // Ensure Router is wrapped here
 import App from "./App";
 import "./styles/index.css";
 import "rsuite/dist/rsuite.min.css"; // Import rsuite styles
-import AppRouter from "./app/(Startup)/Router";
 
-ReactDOM.render(
+const root = ReactDOM.createRoot(document.getElementById("root"));
+
+root.render(
   <React.StrictMode>
-    <AppRouter />
-  </React.StrictMode>,
-  document.getElementById("root")
+    <Router>
+      <App />
+    </Router>
+  </React.StrictMode>
 );
