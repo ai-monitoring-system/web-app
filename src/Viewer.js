@@ -12,7 +12,7 @@ import { collectIceCandidates, cleanupMediaResources } from "./utils/utils";
 const Viewer = () => {
   const [callId, setCallId] = useState("");
   const [hasJoined, setHasJoined] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true); // Indicates if we are checking for a stream
 
   const remoteVideoRef = useRef(null);
@@ -28,13 +28,17 @@ const Viewer = () => {
     }
 
     try {
+      console.log("Checking for call with user ID:", userId);
+
       const callDoc = doc(db, "calls", userId);
       const callDocSnapshot = await getDoc(callDoc);
       if (callDocSnapshot.exists()) {
+        console.log("Stream found for user ID:", userId);
         setCallId(userId);
-        setError(""); // Clear any previous errors
+        setError(null); // Clear any previous errors
       } else {
-        setError("Stream unavailable");
+        console.error("Stream unavailable for user ID:", userId);
+        setError("Stream unavailable. Please check with the streamer.");
       }
     } catch (e) {
       console.error("Error checking for call:", e);
@@ -46,18 +50,23 @@ const Viewer = () => {
 
   const joinStream = async () => {
     if (!callId) {
-      setError("No Call ID to join.");
+      console.error("No Call ID to join.");
+      setError("No Call ID to join. Please check the stream availability.");
       return;
     }
 
     try {
+      console.log("Joining stream with Call ID:", callId);
+
       const pc = new RTCPeerConnection(servers);
       pcRef.current = pc;
 
       const remoteStream = new MediaStream();
       remoteStreamRef.current = remoteStream;
 
+      // Attach incoming tracks to the remote stream
       pc.ontrack = (event) => {
+        console.log("Track received from stream:", event.streams[0]);
         event.streams[0].getTracks().forEach((track) => {
           remoteStream.addTrack(track);
         });
@@ -70,40 +79,51 @@ const Viewer = () => {
       const answerCandidates = collection(callDoc, "answerCandidates");
       const offerCandidates = collection(callDoc, "offerCandidates");
 
+      // Collect ICE candidates for the viewer
       collectIceCandidates(pc, answerCandidates);
 
       const callDocSnapshot = await getDoc(callDoc);
       const callData = callDocSnapshot.data();
       if (!callData) {
-        throw new Error("Call ID not found");
+        throw new Error("Call data not found for the provided Call ID.");
       }
 
-      const offerDescription = callData.offer;
-      await pc.setRemoteDescription(
-        new RTCSessionDescription(offerDescription)
-      );
+      console.log("Call data retrieved:", callData);
 
+      // Set the offer as the remote description
+      const offerDescription = callData.offer;
+      await pc.setRemoteDescription(new RTCSessionDescription(offerDescription));
+      console.log("Remote description set:", offerDescription);
+
+      // Create and set the answer
       const answerDescription = await pc.createAnswer();
       await pc.setLocalDescription(answerDescription);
+      console.log("Answer created and set:", answerDescription);
 
       const answer = {
         type: answerDescription.type,
         sdp: answerDescription.sdp,
       };
       await setDoc(callDoc, { ...callData, answer });
+      console.log("Answer saved to Firestore:", answer);
 
+      // Listen for offer candidates and add them to the connection
       onSnapshot(offerCandidates, (snapshot) => {
         snapshot.docChanges().forEach((change) => {
           if (change.type === "added") {
-            const data = change.doc.data();
-            pc.addIceCandidate(new RTCIceCandidate(data)).catch((e) => {
+            const candidateData = change.doc.data();
+            console.log("Received ICE candidate from offer:", candidateData);
+            pc.addIceCandidate(new RTCIceCandidate(candidateData)).catch((e) => {
               console.error("Error adding received ICE candidate", e);
+              setError("Error adding ICE candidate.");
             });
           }
         });
       });
 
       setHasJoined(true);
+      setError(null);
+      console.log("Successfully joined the stream.");
     } catch (error) {
       console.error("Error joining stream:", error);
       setError(error.message || "An error occurred while joining the stream.");
@@ -114,11 +134,7 @@ const Viewer = () => {
     checkForCall(); // Automatically check for an available call on mount
 
     return () => {
-      cleanupMediaResources(
-        pcRef.current,
-        remoteStreamRef.current,
-        remoteVideoRef
-      );
+      cleanupMediaResources(pcRef.current, remoteStreamRef.current, remoteVideoRef);
     };
   }, []);
 
@@ -139,7 +155,7 @@ const Viewer = () => {
           </div>
         )}
       </div>
-  
+
       {/* Main Content */}
       <div className="flex flex-col lg:flex-row gap-12">
         {!hasJoined && (
@@ -164,7 +180,7 @@ const Viewer = () => {
             )}
           </div>
         )}
-  
+
         <div
           className={`${
             hasJoined ? "flex" : "hidden"

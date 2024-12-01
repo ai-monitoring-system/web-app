@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import {
   FaCog,
   FaHeart,
@@ -10,31 +10,180 @@ import {
   FaSun,
   FaBell,
   FaUser,
+  FaQuestionCircle,
+  FaCircle,
+  FaVideo as FaStreaming,
+  FaPowerOff,
+  FaEye,
+  FaSearch,
 } from "react-icons/fa";
 import SidebarButton from "./components/layout/SidebarButton";
 import Profile from "./components/dashboard/Profile";
 import Settings from "./components/dashboard/Settings";
 import VideoStorage from "./components/dashboard/VideoStorage";
 import DashboardHome from "./components/dashboard/DashboardHome";
+import { useTheme } from './context/ThemeContext';
+import { adjustColor } from './utils/colorUtils';
 
-const DashboardLayout = ({ user, darkMode, toggleDarkMode }) => {
-  const [selectedPage, setSelectedPage] = useState("home");
+const DashboardLayout = ({ user, isStreaming, viewerMode, streamerMode }) => {
+  const location = useLocation();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
+  const [currentStatus, setCurrentStatus] = useState({ 
+    type: 'offline',
+    label: 'Offline',
+    icon: <FaCircle className="text-gray-400" />,
+    description: isStreamer ? 'Not streaming' : 'Not watching'
+  });
+  const navigate = useNavigate();
+
+  const isStreamer = user?.role === 'streamer';
+
+  const { themeSettings, toggleDarkMode } = useTheme();
+
+  const handleDarkModeToggle = () => {
+    toggleDarkMode(!themeSettings.darkMode);
+  };
+
+  useEffect(() => {
+    if (isStreamer) {
+      if (streamerMode === true) {
+        if (isStreaming === true) {
+          setCurrentStatus({
+            type: 'live',
+            label: 'Live Streaming',
+            icon: <FaStreaming className="text-red-500" />,
+            description: 'Currently streaming'
+          });
+        } else {
+          setCurrentStatus({
+            type: 'offline',
+            label: 'Offline',
+            icon: <FaCircle className="text-gray-400" />,
+            description: 'Not streaming'
+          });
+        }
+      } else {
+        setCurrentStatus({
+          type: 'offline',
+          label: 'Offline',
+          icon: <FaCircle className="text-gray-400" />,
+          description: 'Not streaming'
+        });
+      }
+    } else {
+      if (viewerMode === true) {
+        setCurrentStatus({
+          type: 'watching',
+          label: 'Watching Stream',
+          icon: <FaEye className="text-green-500" />,
+          description: 'Currently watching'
+        });
+      } else {
+        setCurrentStatus({
+          type: 'offline',
+          label: 'Offline',
+          icon: <FaCircle className="text-gray-400" />,
+          description: 'Not watching'
+        });
+      }
+    }
+  }, [isStreaming, viewerMode, streamerMode, isStreamer]);
+
+  const streamerStatuses = [
+    { 
+      type: 'live', 
+      label: 'Live Streaming', 
+      icon: <FaStreaming className="text-red-500" />,
+      description: 'Currently streaming'
+    },
+    { 
+      type: 'offline', 
+      label: 'Offline', 
+      icon: <FaCircle className="text-gray-400" />,
+      description: 'Not streaming'
+    },
+  ];
+
+  const viewerStatuses = [
+    { 
+      type: 'watching', 
+      label: 'Watching Stream', 
+      icon: <FaEye className="text-green-500" />,
+      description: 'Currently watching'
+    },
+    { 
+      type: 'offline', 
+      label: 'Offline', 
+      icon: <FaCircle className="text-gray-400" />,
+      description: 'Not watching'
+    },
+  ];
+
+  const statusOptions = isStreamer ? streamerStatuses : viewerStatuses;
+
+  const handleStatusSelect = (status) => {
+    if (!isStreamer && status.type === 'watching' && viewerMode !== true) {
+      return;
+    }
+    if (isStreamer && status.type !== 'offline' && streamerMode !== true) {
+      return;
+    }
+    if (isStreamer && isStreaming && status.type !== 'live') {
+      return;
+    }
+    setCurrentStatus(status);
+    setIsStatusMenuOpen(false);
+  };
 
   const toggleSidebar = () => setIsSidebarCollapsed(!isSidebarCollapsed);
 
+  const handleSignOut = () => {
+    console.log("Signing out...");
+  };
+
+  const handleHelp = () => {
+    window.open('https://github.com/ai-monitoring-system/web-app/blob/main/README.md', '_blank');
+  };
+
+  const getSelectedPage = (path) => {
+    switch (path) {
+      case '/':
+        return 'home';
+      case '/videoStorage':
+        return 'videoStorage';
+      case '/profile':
+        return 'profile';
+      case '/settings':
+        return 'settings';
+      default:
+        return 'home';
+    }
+  };
+
+  const selectedPage = getSelectedPage(location.pathname);
+
   return (
-    <div className={`${darkMode ? "dark" : ""}`}>
+    <div className={`${themeSettings.darkMode ? "dark" : ""}`}>
       <div className="flex min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 animate__animated animate__fadeIn">
         {/* Sidebar */}
         <aside
-          className={`bg-gradient-to-b from-blue-800 to-blue-600 dark:from-gray-800 dark:to-gray-700 text-white p-4 shadow-lg transition-all duration-300 ease-in-out ${
-            isSidebarCollapsed ? "w-20" : "w-64"
-          }`}
+          className="text-white p-4 shadow-lg transition-all duration-300 ease-in-out"
+          style={{
+            background: themeSettings.darkMode 
+              ? `linear-gradient(to bottom, ${adjustColor(themeSettings.sidebarColor, -40)}, ${adjustColor(themeSettings.sidebarColor, -60)})`
+              : `linear-gradient(to bottom, ${themeSettings.sidebarColor}, ${adjustColor(themeSettings.sidebarColor, -20)})`,
+            width: isSidebarCollapsed ? "5rem" : "16rem"
+          }}
         >
           <button
             onClick={toggleSidebar}
-            className="flex items-center justify-center mb-6 w-full bg-blue-700 dark:bg-gray-700 rounded-md p-2 text-xl transition duration-150 ease-in-out hover:bg-blue-800 dark:hover:bg-gray-600 focus:outline-none"
+            className={`flex items-center justify-center mb-6 w-full rounded-md p-2 text-xl transition duration-150 ease-in-out focus:outline-none ${
+              themeSettings.darkMode 
+                ? 'bg-opacity-20 hover:bg-opacity-30 bg-gray-900' 
+                : 'bg-opacity-20 hover:bg-opacity-30 bg-white'
+            }`}
             aria-label="Toggle Sidebar"
           >
             <FaBars />
@@ -45,7 +194,6 @@ const DashboardLayout = ({ user, darkMode, toggleDarkMode }) => {
               path="/"
               label="Dashboard"
               icon={<FaHome />}
-              onClick={() => setSelectedPage("home")}
               isSelected={selectedPage === "home"}
               isCollapsed={isSidebarCollapsed}
             />
@@ -53,7 +201,6 @@ const DashboardLayout = ({ user, darkMode, toggleDarkMode }) => {
               path="/videoStorage"
               label="Video Storage"
               icon={<FaVideo />}
-              onClick={() => setSelectedPage("videoStorage")}
               isSelected={selectedPage === "videoStorage"}
               isCollapsed={isSidebarCollapsed}
             />
@@ -61,7 +208,6 @@ const DashboardLayout = ({ user, darkMode, toggleDarkMode }) => {
               path="/profile"
               label="Profile"
               icon={<FaUser />}
-              onClick={() => setSelectedPage("profile")}
               isSelected={selectedPage === "profile"}
               isCollapsed={isSidebarCollapsed}
             />
@@ -69,7 +215,6 @@ const DashboardLayout = ({ user, darkMode, toggleDarkMode }) => {
               path="/settings"
               label="Settings"
               icon={<FaCog />}
-              onClick={() => setSelectedPage("settings")}
               isSelected={selectedPage === "settings"}
               isCollapsed={isSidebarCollapsed}
             />
@@ -86,30 +231,127 @@ const DashboardLayout = ({ user, darkMode, toggleDarkMode }) => {
               </h1>
             </div>
 
-            <div className="flex items-center space-x-8">
+            <div className="flex items-center space-x-8 relative">
               {/* Dark Mode Toggle */}
               <button
-                onClick={toggleDarkMode}
+                onClick={handleDarkModeToggle}
                 className="flex items-center space-x-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 font-semibold py-2 px-4 rounded-md focus:outline-none"
                 aria-label="Toggle Dark Mode"
               >
-                {darkMode ? <FaSun /> : <FaMoon />}
-                <span>{darkMode ? "Light Mode" : "Dark Mode"}</span>
+                {themeSettings.darkMode ? <FaSun /> : <FaMoon />}
+                <span>{themeSettings.darkMode ? "Light Mode" : "Dark Mode"}</span>
               </button>
-              <FaBell className="text-gray-800 dark:text-gray-300 text-xl cursor-pointer hover:scale-110 transition-transform" />
-              <FaHeart className="text-red-500 text-xl cursor-pointer hover:scale-110 transition-transform" />
-              <FaCog className="text-gray-800 dark:text-gray-300 text-xl cursor-pointer hover:scale-110 transition-transform" />
-              {user ? (
-                <img
-                  src={user.photoURL || "https://via.placeholder.com/40"}
-                  alt={user.displayName || "Profile"}
-                  className="h-10 w-10 rounded-full object-cover cursor-pointer hover:scale-110 transition-transform"
-                />
-              ) : (
-                <div className="h-10 w-10 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-gray-800 dark:text-gray-300 text-xl">
-                  <FaUser />
-                </div>
-              )}
+              
+              {/* Search Icon */}
+              <FaSearch 
+                className="text-gray-800 dark:text-gray-300 text-xl cursor-pointer hover:scale-110 transition-transform" 
+                onClick={() => {/* Add search functionality */}}
+                title="Search"
+              />
+              
+              <FaBell className="text-gray-800 dark:text-gray-300 text-xl cursor-pointer hover:scale-110 transition-transform" title="Notifications" />
+              <FaHeart className="text-red-500 text-xl cursor-pointer hover:scale-110 transition-transform" title="Favorites" />
+              <FaCog 
+                className="text-gray-800 dark:text-gray-300 text-xl cursor-pointer hover:scale-110 transition-transform" 
+                onClick={() => navigate('/settings')}
+                title="Settings"
+              />
+              
+              <div className="relative">
+                {user ? (
+                  <img
+                    src={user.photoURL || "https://via.placeholder.com/40"}
+                    alt={user.displayName || "Profile"}
+                    className="h-10 w-10 rounded-full object-cover cursor-pointer hover:scale-110 transition-transform"
+                    onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                  />
+                ) : (
+                  <div 
+                    className="h-10 w-10 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-gray-800 dark:text-gray-300 text-xl cursor-pointer"
+                    onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                  >
+                    <FaUser />
+                  </div>
+                )}
+
+                {/* Profile Dropdown Menu */}
+                {isProfileDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-44 bg-white dark:bg-gray-800 rounded-md shadow-md py-1 z-50 border border-gray-200 dark:border-gray-700">
+                    <div className="px-4 py-3 text-sm text-gray-700 dark:text-gray-200 border-b dark:border-gray-700">
+                      Signed in as<br />
+                      <span className="font-bold">{user?.displayName || "Guest"}</span>
+                    </div>
+                    
+                    <button 
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 relative"
+                      onClick={() => setIsStatusMenuOpen(!isStatusMenuOpen)}
+                    >
+                      <div className="flex items-center">
+                        {statusOptions.find(s => s.type === currentStatus.type)?.icon || 
+                         statusOptions[statusOptions.length - 1].icon}
+                        <span className="ml-2">
+                          {currentStatus.type === 'offline' 
+                            ? 'Status' 
+                            : statusOptions.find(s => s.type === currentStatus.type)?.label}
+                        </span>
+                      </div>
+                    </button>
+
+                    {isStatusMenuOpen && (
+                      <div className="absolute left-full ml-2 w-56 bg-white dark:bg-gray-800 rounded-md shadow-md py-1 z-50 border border-gray-200 dark:border-gray-700">
+                        <div className="px-4 py-2 text-xs text-gray-500 dark:text-gray-400 border-b dark:border-gray-700">
+                          {isStreamer ? 'Streaming Status' : 'Viewer Status'}
+                        </div>
+                        {statusOptions.map((status) => (
+                          <button
+                            key={status.type}
+                            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                            onClick={() => handleStatusSelect(status)}
+                          >
+                            <div className="flex items-center">
+                              {status.icon}
+                              <div className="ml-2">
+                                <div>{status.label}</div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                  {status.description}
+                                </div>
+                              </div>
+                              {currentStatus.type === status.type && (
+                                <span className="ml-auto">✓</span>
+                              )}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    
+                    <button onClick={() => navigate('/profile')} className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
+                      Profile & Account
+                    </button>
+                    
+                    <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
+                      Feedback
+                    </button>
+                    
+                    <div className="border-t dark:border-gray-700">
+                      <button onClick={() => navigate('/settings')} className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
+                        Settings
+                      </button>
+                      
+                      <button onClick={handleSignOut} className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
+                        Sign out
+                      </button>
+                      
+                      <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={handleHelp}>
+                        <div className="flex items-center">
+                          <FaQuestionCircle className="mr-2" />
+                          Help
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </header>
 

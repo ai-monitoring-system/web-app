@@ -1,54 +1,53 @@
-import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import App from "../../App"; // Main Application
-import SignIn from "../(Auth)/signin/SignIn"; // SignIn Component
-import SignUp from "../(Auth)/signup/SignUp"; // SignUp Component
-import MainStartupPage from "../../app/(Startup)/MainStartupPage"; // Main Startup Page
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import DashboardLayout from "../../DashboardLayout";
+import SignIn from "../(Auth)/signin/SignIn";
+import SignUp from "../(Auth)/signup/SignUp";
+import MainStartupPage from "./MainStartupPage";
+import DashboardHome from "../../components/dashboard/DashboardHome";
+import VideoStorage from "../../components/dashboard/VideoStorage";
+import Profile from "../../components/dashboard/Profile";
+import Settings from "../../components/dashboard/Settings";
+import Viewer from "../../Viewer";
 import NotFound from "../../components/shared/NotFound";
 import InternalError from "../../components/shared/InternalError";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../../config"; // Firebase config
 
-const AppRouter = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); // For authentication state loading
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setIsAuthenticated(!!user);
-      setIsLoading(false); // Set loading to false once authentication state is determined
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+const Router = ({ user }) => {
+  // Development bypass - set to true to access protected routes without auth
+  const DEV_MODE = true;  // TODO: Remove in production
+  const isAuthenticated = DEV_MODE || user;
 
   return (
-    <Router>
-      <Routes>
-        {/* Unauthenticated Routes */}
-        <Route path="/" element={<MainStartupPage />} />
-        <Route path="/signin" element={<SignIn />} />
-        <Route path="/signup" element={<SignUp />} />
+    <Routes>
+      {/* Public Routes */}
+      <Route path="/signin" element={<SignIn />} />
+      <Route path="/signup" element={<SignUp />} />
+      <Route path="/welcome" element={<MainStartupPage />} />
 
-        {/* Authenticated Routes */}
-        <Route
-          path="/*"
-          element={isAuthenticated ? <App /> : <Navigate to="/signin" />}
-        />
+      {/* Error Pages */}
+      <Route path="/404" element={<NotFound />} />
+      <Route path="/500" element={<InternalError />} />
 
-        {/* Error Pages */}
-        <Route path="/404" element={<NotFound />} />
-        <Route path="/500" element={<InternalError />} />
-
-        {/* Redirect all unmatched routes to 404 */}
-        <Route path="*" element={<Navigate to="/404" replace />} />
-      </Routes>
-    </Router>
+      {/* Protected Routes */}
+      <Route
+        path="/*"
+        element={
+          isAuthenticated ? (
+            <DashboardLayout
+              user={user}
+              isStreaming={false}
+              viewerMode={false}
+              streamerMode={false}
+            />
+          ) : (
+            <Navigate to="/welcome" />
+          )
+        }
+      />
+      {/* Catch-all route */}
+      <Route path="*" element={<Navigate to="/welcome" />} />
+    </Routes>
   );
 };
 
-export default AppRouter;
+export default Router;
