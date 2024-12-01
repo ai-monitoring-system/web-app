@@ -30,6 +30,7 @@ const Viewer = () => {
       return;
     }
 
+    console.log("Initializing PeerConnection...");
     const pc = new RTCPeerConnection(servers);
     pcRef.current = pc;
 
@@ -37,15 +38,23 @@ const Viewer = () => {
     remoteStreamRef.current = remoteStream;
 
     pc.ontrack = (event) => {
-      console.log("ontrack event", event);
-      event.streams[0].getTracks().forEach((track) => {
-        remoteStream.addTrack(track);
+      console.log("ontrack event triggered:", event);
+      event.streams.forEach((stream) => {
+        console.log("Adding stream:", stream);
+        stream.getTracks().forEach((track) => {
+          remoteStream.addTrack(track);
+        });
       });
+
       if (remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = remoteStream;
+        console.log("Remote video element updated:", remoteVideoRef.current);
+      } else {
+        console.warn("remoteVideoRef is not set.");
       }
 
       if (!mediaRecorder) {
+        console.log("Initializing MediaRecorder...");
         mediaRecorder = new MediaRecorder(remoteStream);
         const recordedChunks = [];
         let blob;
@@ -53,11 +62,13 @@ const Viewer = () => {
 
         mediaRecorder.ondataavailable = (event) => {
           if (event.data.size > 0) {
+            console.log("Recording chunk available");
             recordedChunks.push(event.data);
           }
         };
 
         mediaRecorder.onstop = () => {
+          console.log("MediaRecorder stopped");
           blob = new Blob(recordedChunks, { type: "video/webm" });
           url = URL.createObjectURL(blob);
           setDownloadUrl(url);
@@ -69,13 +80,18 @@ const Viewer = () => {
         };
 
         mediaRecorder.start();
-
         recordingInterval = setInterval(() => {
-          console.log("Recording reset");
+          console.log("Resetting MediaRecorder...");
           if (!recordingStopped) {
             mediaRecorder.stop();
           }
         }, clipLength * 1000);
+      }
+    };
+
+    pc.onicecandidate = (event) => {
+      if (event.candidate) {
+        console.log("Sending ICE candidate:", event.candidate);
       }
     };
 
@@ -89,14 +105,17 @@ const Viewer = () => {
     const callData = callDocSnapshot.data();
     if (!callData) {
       setError("Call ID not found");
+      console.error("No call data found for ID:", callId);
       return;
     }
 
     const offerDescription = callData.offer;
+    console.log("Received offer:", offerDescription);
     await pc.setRemoteDescription(new RTCSessionDescription(offerDescription));
 
     const answerDescription = await pc.createAnswer();
     await pc.setLocalDescription(answerDescription);
+    console.log("Answer created and set:", answerDescription);
 
     const answer = {
       type: answerDescription.type,
@@ -108,6 +127,7 @@ const Viewer = () => {
       snapshot.docChanges().forEach((change) => {
         if (change.type === "added") {
           const data = change.doc.data();
+          console.log("Adding ICE candidate:", data);
           pc.addIceCandidate(new RTCIceCandidate(data)).catch((e) => {
             console.error("Error adding received ICE candidate", e);
           });
@@ -115,8 +135,8 @@ const Viewer = () => {
       });
     });
 
-    pc.onconnectionstatechange = (event) => {
-      console.log("Connection state change:", pc.connectionState);
+    pc.onconnectionstatechange = () => {
+      console.log("Connection state:", pc.connectionState);
       if (pc.connectionState === "disconnected" && mediaRecorder) {
         clearInterval(recordingInterval);
         mediaRecorder.stop();
@@ -169,7 +189,7 @@ const Viewer = () => {
           className="w-full h-auto bg-black rounded-md"
         ></video>
       </div>
-      {(downloadUrl && (
+      {downloadUrl ? (
         <div className="mt-10">
           <a
             href={downloadUrl}
@@ -179,7 +199,9 @@ const Viewer = () => {
             Download Latest Recording ({clipLength}s)
           </a>
         </div>
-      )) || <div className="mt-10">Recording Unavailable... Please Wait</div>}
+      ) : (
+        <div className="mt-10">Recording Unavailable... Please Wait</div>
+      )}
     </div>
   );
 };
