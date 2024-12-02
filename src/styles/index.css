@@ -212,3 +212,129 @@ button:hover {
 .nav-link:hover::after {
   width: 100%; /* Expand underline on hover */
 }
+
+/* Update the theme transition classes to be conditional based on theme change direction */
+.theme-transition.to-dark,
+.theme-transition.to-dark * {
+  transition: background-color 0.3s ease, 
+              color 0.3s ease,
+              border-color 0.3s ease,
+              opacity 0.3s ease,
+              background-image 0.3s ease !important;
+}
+
+.theme-transition.to-light,
+.theme-transition.to-light * {
+  transition: none !important;
+}
+
+/* Update text transition classes */
+.text-gray-800,
+.text-gray-900,
+.text-gray-700,
+.text-gray-600,
+.text-gray-500,
+.text-gray-400,
+.text-gray-300,
+.text-gray-200,
+.text-gray-100,
+.dark\:text-gray-100,
+.dark\:text-gray-200,
+.dark\:text-gray-300,
+.dark\:text-gray-400,
+.dark\:text-gray-500,
+.dark\:text-gray-600,
+.dark\:text-gray-700,
+.dark\:text-gray-800,
+.dark\:text-gray-900 {
+  transition: color 0.3s ease;
+}
+
+/* Add transition for background colors */
+.bg-white,
+.bg-gray-50,
+.bg-gray-100,
+.bg-gray-200,
+.dark\:bg-gray-700,
+.dark\:bg-gray-800,
+.dark\:bg-gray-900 {
+  transition: background-color 0.3s ease;
+}
+
+/* Add transition for borders */
+.border-gray-100,
+.border-gray-200,
+.border-gray-300,
+.dark\:border-gray-600,
+.dark\:border-gray-700,
+.dark\:border-gray-800 {
+  transition: border-color 0.3s ease;
+}
+
+/* Add these additional transition classes for gradient text */
+.bg-clip-text,
+.text-transparent,
+.bg-gradient-to-r {
+  transition: background-image 0.3s ease,
+              background-color 0.3s ease,
+              color 0.3s ease;
+  -webkit-transition: background-image 0.3s ease,
+                     background-color 0.3s ease,
+                     color 0.3s ease;
+}
+
+/* Add specific transitions for the gradient text colors */
+[class*='from-']:not([class*='via-']):not([class*='to-']),
+[class*='via-'],
+[class*='to-'],
+.dark\:from-purple-400,
+.dark\:to-purple-300,
+.dark\:from-blue-400,
+.dark\:to-blue-300,
+.dark\:from-green-400,
+.dark\:to-green-300 {
+  transition: all 0.3s ease;
+}
+
+/* Add these transition classes for input fields */
+input[type="text"],
+input[type="color"] {
+  transition: all 0.3s ease,
+              background-color 0.3s ease,
+              border-color 0.3s ease,
+              color 0.3s ease !important;
+}
+
+/* Add specific transitions for the flex container and its children */
+.flex-1,
+.flex input {
+  transition: all 0.3s ease,
+              background-color 0.3s ease,
+              border-color 0.3s ease,
+              color 0.3s ease !important;
+}
+
+/* Add transition classes for select elements */
+select,
+select option {
+  transition: all 0.3s ease,
+              background-color 0.3s ease,
+              border-color 0.3s ease,
+              color 0.3s ease !important;
+}
+
+/* Override transitions for light mode */
+.theme-transition.to-light select,
+.theme-transition.to-light select option,
+.theme-transition.to-light select * {
+  transition: none !important;
+}
+
+/* Ensure dark mode transitions are smooth */
+.theme-transition.to-dark select,
+.theme-transition.to-dark select option,
+.theme-transition.to-dark select * {
+  transition: background-color 0.3s ease,
+              color 0.3s ease,
+              border-color 0.3s ease !important;
+}

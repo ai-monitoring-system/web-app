@@ -205,17 +205,33 @@ const Settings = () => {
     const colors = colorSchemes[color];
 
     return (
-      <div className="h-full bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 relative overflow-hidden transform translate-y-0">
+      <div 
+        className="h-full bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-lg 
+        transition-all duration-1000 ease-[cubic-bezier(0.23,1,0.32,1)] 
+        hover:shadow-2xl hover:-translate-y-0.5 hover:scale-[1.003] 
+        relative overflow-hidden will-change-transform"
+      >
         {/* Decorative background elements */}
-        <div className={`absolute top-0 right-0 w-32 h-32 ${colors.blur} rounded-full -translate-x-16 -translate-y-16 blur-2xl`}></div>
-        <div className={`absolute bottom-0 left-0 w-32 h-32 ${colors.blur} rounded-full translate-x-16 translate-y-16 blur-2xl`}></div>
+        <div 
+          className={`absolute top-0 right-0 w-32 h-32 ${colors.blur} rounded-full 
+          -translate-x-16 -translate-y-16 blur-2xl transition-all duration-1000 
+          ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:blur-3xl group-hover:opacity-80`}
+        />
+        <div 
+          className={`absolute bottom-0 left-0 w-32 h-32 ${colors.blur} rounded-full 
+          translate-x-16 translate-y-16 blur-2xl transition-all duration-1000 
+          ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:blur-3xl group-hover:opacity-80`}
+        />
 
+        {/* Content container */}
         <div className="relative">
           <div className="flex items-center gap-3 mb-6">
             <div className={`p-2.5 ${colors.light} rounded-2xl shadow-sm`}>
               <Icon className={`text-2xl ${colors.icon}`} />
             </div>
-            <h3 className={`text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r ${colors.gradient}`}>
+            <h3 
+              className={`text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r ${colors.gradient} transition-all duration-300`}
+            >
               {title}
             </h3>
           </div>
@@ -235,8 +251,9 @@ const Settings = () => {
 
   return (
     <div
-      className={`p-6 space-y-6 transform transition-all duration-700 ${isPageLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-        }`}
+      className={`p-6 space-y-6 transform transition-all duration-300 ${
+        isPageLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+      }`}
     >
       {/* Header with buttons */}
       <div className="mb-8 flex justify-between items-center">
@@ -294,7 +311,7 @@ const Settings = () => {
                       type="text"
                       value={stagedSettings.sidebarColor}
                       onChange={(e) => handleAppearanceChange('sidebarColor', e.target.value)}
-                      className="flex-1 px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:border-gray-600"
+                      className="flex-1 px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 transition-all duration-300"
                       placeholder="#3B82F6"
                     />
                   </div>
@@ -442,7 +459,7 @@ const Settings = () => {
                       {Object.entries(notifications.emailAlerts.types).map(([type, enabled]) => (
                         <div 
                           key={type}
-                          className="flex items-center justify-between p-2.5 rounded-lg bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                          className="flex items-center justify-between p-2.5 rounded-lg bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
                         >
                           <span className="text-base text-gray-600 dark:text-gray-400">
                             {type.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
@@ -452,9 +469,13 @@ const Settings = () => {
                               type="checkbox"
                               className="sr-only peer"
                               checked={enabled}
-                              onChange={(e) => handleNotificationTypeChange('emailAlerts', type, e.target.checked)}
+                              onChange={(e) => {
+                                // Prevent propagation to stop the container from triggering hover effects
+                                e.stopPropagation();
+                                handleNotificationTypeChange('emailAlerts', type, e.target.checked);
+                              }}
                             />
-                            <div className="w-8 h-4 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300/20 dark:peer-focus:ring-blue-800/20 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all dark:border-gray-600 peer-checked:bg-blue-500"></div>
+                            <div className="w-8 h-4 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300/20 dark:peer-focus:ring-blue-800/20 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-transform dark:border-gray-600 peer-checked:bg-blue-500"></div>
                           </label>
                         </div>
                       ))}
@@ -469,7 +490,7 @@ const Settings = () => {
                     <select
                       value={notifications.emailAlerts.frequency}
                       onChange={(e) => handleNotificationChange('emailAlerts', 'frequency', e.target.value)}
-                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 text-sm"
+                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 transition-all duration-300"
                     >
                       <option value="immediate">Immediate</option>
                       <option value="hourly">Hourly Digest</option>

@@ -43,7 +43,15 @@ const DashboardLayout = ({ user, isStreaming, viewerMode, streamerMode }) => {
   const { themeSettings, toggleDarkMode } = useTheme();
 
   const handleDarkModeToggle = () => {
+    document.body.classList.add('theme-transition');
+    document.body.classList.add(themeSettings.darkMode ? 'to-light' : 'to-dark');
+    
     toggleDarkMode(!themeSettings.darkMode);
+    
+    setTimeout(() => {
+      document.body.classList.remove('theme-transition');
+      document.body.classList.remove('to-light', 'to-dark');
+    }, 300);
   };
 
   useEffect(() => {
@@ -210,7 +218,7 @@ const DashboardLayout = ({ user, isStreaming, viewerMode, streamerMode }) => {
         {/* Main Content */}
         <div className="flex flex-col flex-grow">
           {/* Header */}
-          <header className="bg-white dark:bg-gray-800 shadow-md p-4 flex justify-between items-center">
+          <header className="bg-white dark:bg-gray-800 shadow-md p-4 flex justify-between items-center relative z-[9999]">
             <div className="flex items-center space-x-4">
               <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
                 {selectedPage.charAt(0).toUpperCase() + selectedPage.slice(1)}
@@ -262,7 +270,7 @@ const DashboardLayout = ({ user, isStreaming, viewerMode, streamerMode }) => {
 
                 {/* Profile Dropdown Menu */}
                 {isProfileDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-44 bg-white dark:bg-gray-800 rounded-md shadow-md py-1 z-50 border border-gray-200 dark:border-gray-700">
+                  <div className="absolute right-0 mt-2 w-44 bg-white dark:bg-gray-800 rounded-md shadow-md py-1 z-[9999] border border-gray-200 dark:border-gray-700">
                     <div className="px-4 py-3 text-sm text-gray-700 dark:text-gray-200 border-b dark:border-gray-700">
                       Signed in as<br />
                       <span className="font-bold">{user?.displayName || "Guest"}</span>
