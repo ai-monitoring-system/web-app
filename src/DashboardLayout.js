@@ -29,7 +29,9 @@ const DashboardLayout = ({ user, isStreaming, viewerMode, streamerMode }) => {
   const location = useLocation();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
+
+  const isStreamer = user?.role === 'streamer';
+
   const [currentStatus, setCurrentStatus] = useState({ 
     type: 'offline',
     label: 'Offline',
@@ -37,8 +39,6 @@ const DashboardLayout = ({ user, isStreaming, viewerMode, streamerMode }) => {
     description: isStreamer ? 'Not streaming' : 'Not watching'
   });
   const navigate = useNavigate();
-
-  const isStreamer = user?.role === 'streamer';
 
   const { themeSettings, toggleDarkMode } = useTheme();
 
@@ -123,20 +123,6 @@ const DashboardLayout = ({ user, isStreaming, viewerMode, streamerMode }) => {
 
   const statusOptions = isStreamer ? streamerStatuses : viewerStatuses;
 
-  const handleStatusSelect = (status) => {
-    if (!isStreamer && status.type === 'watching' && viewerMode !== true) {
-      return;
-    }
-    if (isStreamer && status.type !== 'offline' && streamerMode !== true) {
-      return;
-    }
-    if (isStreamer && isStreaming && status.type !== 'live') {
-      return;
-    }
-    setCurrentStatus(status);
-    setIsStatusMenuOpen(false);
-  };
-
   const toggleSidebar = () => setIsSidebarCollapsed(!isSidebarCollapsed);
 
   const handleSignOut = () => {
@@ -172,7 +158,7 @@ const DashboardLayout = ({ user, isStreaming, viewerMode, streamerMode }) => {
           className="text-white p-4 shadow-lg transition-all duration-300 ease-in-out"
           style={{
             background: themeSettings.darkMode 
-              ? `linear-gradient(to bottom, ${adjustColor(themeSettings.sidebarColor, -40)}, ${adjustColor(themeSettings.sidebarColor, -60)})`
+              ? `linear-gradient(to bottom, ${adjustColor(themeSettings.sidebarColor, -40, true)}, ${adjustColor(themeSettings.sidebarColor, -60, true)})`
               : `linear-gradient(to bottom, ${themeSettings.sidebarColor}, ${adjustColor(themeSettings.sidebarColor, -20)})`,
             width: isSidebarCollapsed ? "5rem" : "16rem"
           }}
@@ -282,48 +268,17 @@ const DashboardLayout = ({ user, isStreaming, viewerMode, streamerMode }) => {
                       <span className="font-bold">{user?.displayName || "Guest"}</span>
                     </div>
                     
-                    <button 
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 relative"
-                      onClick={() => setIsStatusMenuOpen(!isStatusMenuOpen)}
-                    >
+                    <div className="px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
                       <div className="flex items-center">
-                        {statusOptions.find(s => s.type === currentStatus.type)?.icon || 
-                         statusOptions[statusOptions.length - 1].icon}
-                        <span className="ml-2">
-                          {currentStatus.type === 'offline' 
-                            ? 'Status' 
-                            : statusOptions.find(s => s.type === currentStatus.type)?.label}
-                        </span>
-                      </div>
-                    </button>
-
-                    {isStatusMenuOpen && (
-                      <div className="absolute left-full ml-2 w-56 bg-white dark:bg-gray-800 rounded-md shadow-md py-1 z-50 border border-gray-200 dark:border-gray-700">
-                        <div className="px-4 py-2 text-xs text-gray-500 dark:text-gray-400 border-b dark:border-gray-700">
-                          {isStreamer ? 'Streaming Status' : 'Viewer Status'}
+                        {currentStatus.icon}
+                        <div className="ml-2">
+                          <div>{currentStatus.label}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            {currentStatus.description}
+                          </div>
                         </div>
-                        {statusOptions.map((status) => (
-                          <button
-                            key={status.type}
-                            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                            onClick={() => handleStatusSelect(status)}
-                          >
-                            <div className="flex items-center">
-                              {status.icon}
-                              <div className="ml-2">
-                                <div>{status.label}</div>
-                                <div className="text-xs text-gray-500 dark:text-gray-400">
-                                  {status.description}
-                                </div>
-                              </div>
-                              {currentStatus.type === status.type && (
-                                <span className="ml-auto">✓</span>
-                              )}
-                            </div>
-                          </button>
-                        ))}
                       </div>
-                    )}
+                    </div>
                     
                     <button onClick={() => navigate('/profile')} className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
                       Profile & Account
