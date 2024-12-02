@@ -260,7 +260,7 @@ const DashboardLayout = ({ user, isStreaming, viewerMode, streamerMode }) => {
               <div className="relative">
                 {user ? (
                   <img
-                    src={user.photoURL || "https://via.placeholder.com/40"}
+                    src={user.photoURL ? user.photoURL : "https://via.placeholder.com/40"}
                     alt={user.displayName || "Profile"}
                     className="h-10 w-10 rounded-full object-cover cursor-pointer hover:scale-110 transition-transform"
                     onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
