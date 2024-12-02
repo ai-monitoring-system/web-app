@@ -124,10 +124,14 @@ const Streamer = () => {
         snapshot.docChanges().forEach((change) => {
           if (change.type === "added") {
             const candidate = new RTCIceCandidate(change.doc.data());
-            pc.addIceCandidate(candidate).catch((e) => {
-              console.error("Error adding received ICE candidate", e);
-              setError("Error adding ICE candidate.");
-            });
+            if (pc.remoteDescription) {
+              pc.addIceCandidate(candidate).catch((e) => {
+                console.error("Error adding received ICE candidate:", e);
+                setError("Error adding ICE candidate.");
+              });
+            } else {
+              console.warn("Remote description is not set yet.Candidate ignored.");
+            }
           }
         });
       });
@@ -204,4 +208,4 @@ const Streamer = () => {
   );
 };
 
-export default Streamer;
+export default Streamer; 
