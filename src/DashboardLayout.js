@@ -144,15 +144,15 @@ const DashboardLayout = ({ user, isStreaming, viewerMode, streamerMode }) => {
   const getSelectedPage = (path) => {
     switch (path) {
       case '/':
-        return 'home';
+        return 'Home';
       case '/videoStorage':
-        return 'videoStorage';
+        return 'Video Storage';
       case '/profile':
-        return 'profile';
+        return 'Profile';
       case '/settings':
-        return 'settings';
+        return 'Settings';
       default:
-        return 'home';
+        return 'Home';
     }
   };
 
@@ -188,7 +188,7 @@ const DashboardLayout = ({ user, isStreaming, viewerMode, streamerMode }) => {
               path="/"
               label="Dashboard"
               icon={<FaHome />}
-              isSelected={selectedPage === "home"}
+              isSelected={selectedPage === "Dashboard"}
               isCollapsed={isSidebarCollapsed}
             />
             <SidebarButton
@@ -221,7 +221,7 @@ const DashboardLayout = ({ user, isStreaming, viewerMode, streamerMode }) => {
           <header className="bg-white dark:bg-gray-800 shadow-md p-4 flex justify-between items-center relative z-[9999]">
             <div className="flex items-center space-x-4">
               <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
-                {selectedPage.charAt(0).toUpperCase() + selectedPage.slice(1)}
+                {selectedPage}
               </h1>
             </div>
 
