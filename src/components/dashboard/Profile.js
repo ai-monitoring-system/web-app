@@ -131,11 +131,11 @@ const Profile = () => {
   };
 
   return (
-    <div
-      className={`min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-gray-200 dark:from-gray-900 dark:to-gray-800 text-gray-800 dark:text-gray-100 transform transition-all duration-300 z-0 ${
-        isPageLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-      }`}
-    >
+      <div
+        className={`min-h-screen flex flex-col overflow-hidden bg-gradient-to-br from-gray-50 to-gray-200 dark:from-gray-900 dark:to-gray-800 text-gray-800 dark:text-gray-100 transform transition-all duration-300 z-0 ${
+          isPageLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+        }`}
+      >
       {/* Profile Header */}
       <div className="relative bg-gradient-to-r from-blue-600 via-blue-500 to-blue-700 text-white py-12 px-6 text-center rounded-b-[50px] shadow-lg">
         <div className="absolute inset-0 bg-gradient-to-b from-blue-700/50 via-blue-600/30 to-transparent"></div>
