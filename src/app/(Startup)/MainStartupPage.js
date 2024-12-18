@@ -33,7 +33,7 @@ const MainStartupPage = () => {
 
       {/* Hero Section */}
       <HeroSection
-        description="Transforming Old Devices into Intelligent AI Monitoring Solutions."
+        description="Transforming Old Devices into Intelligent AI Monitoring Solutions"
         actionLabel={
           <span className="font-bold text-xl text-white hover:text-white focus:text-white no-underline">
             Get Started
