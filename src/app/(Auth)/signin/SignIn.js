@@ -1,30 +1,34 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaGoogle, FaGithub } from "react-icons/fa";
+import { useAuth } from '../../../context/AuthContext';
 import "animate.css";
+import { LoadingSpinner } from '../../../components/shared/LoadingSpinner';
 
 const SignIn = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const { signInWithGoogle, signInWithGithub, authLoading, error } = useAuth();
+  const [localError, setLocalError] = useState("");
 
-  const handleSignIn = () => {
-    // Add authentication logic here
-    console.log("Sign-in data submitted:", { email, password });
-
-    // Navigate to the dashboard after successful sign-in
-    navigate("/");
+  const handleGoogleSignIn = async () => {
+    try {
+      setLocalError("");
+      await signInWithGoogle();
+    } catch (err) {
+      setLocalError(err.message);
+    }
   };
 
-  const handleGoogleSignIn = () => {
-    // Add Google sign-in logic here
-    console.log("Google Sign-In triggered");
+  const handleGithubSignIn = async () => {
+    try {
+      setLocalError("");
+      await signInWithGithub();
+    } catch (err) {
+      setLocalError(err.message);
+    }
   };
 
-  const handleGithubSignIn = () => {
-    // Add GitHub sign-in logic here
-    console.log("GitHub Sign-In triggered");
-  };
+  const displayError = error || localError;
 
   return (
     <div
@@ -51,8 +55,6 @@ const SignIn = () => {
           <input
             type="email"
             id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter your email"
             className="w-full px-4 py-3 text-lg border rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
@@ -70,17 +72,20 @@ const SignIn = () => {
           <input
             type="password"
             id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter your password"
             className="w-full px-4 py-3 text-lg border rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
           />
         </div>
 
+        {displayError && (
+          <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-md">
+            {displayError}
+          </div>
+        )}
+
         {/* Sign In Button */}
         <button
-          onClick={handleSignIn}
           className="w-full py-3 bg-blue-600 text-white text-lg rounded-md font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-150"
         >
           Sign In
@@ -94,17 +99,31 @@ const SignIn = () => {
           <div className="flex justify-center space-x-6">
             <button
               onClick={handleGoogleSignIn}
-              className="flex items-center justify-center px-6 py-3 bg-red-500 text-white text-lg font-medium rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition"
+              disabled={authLoading}
+              className="flex items-center justify-center px-6 py-3 bg-red-500 text-white text-lg font-medium rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <FaGoogle className="mr-3 text-2xl" />
-              Google
+              {authLoading ? (
+                <LoadingSpinner size="sm" light />
+              ) : (
+                <>
+                  <FaGoogle className="mr-3 text-2xl" />
+                  Sign in with Google
+                </>
+              )}
             </button>
             <button
               onClick={handleGithubSignIn}
-              className="flex items-center justify-center px-6 py-3 bg-gray-800 text-white text-lg font-medium rounded-md hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-600 transition"
+              disabled={authLoading}
+              className="flex items-center justify-center px-6 py-3 bg-gray-800 text-white text-lg font-medium rounded-md hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <FaGithub className="mr-3 text-2xl" />
-              GitHub
+              {authLoading ? (
+                <LoadingSpinner size="sm" light />
+              ) : (
+                <>
+                  <FaGithub className="mr-3 text-2xl" />
+                  Sign in with GitHub
+                </>
+              )}
             </button>
           </div>
         </div>

@@ -16,6 +16,7 @@ import {
   FaPowerOff,
   FaEye,
   FaSearch,
+  FaSignOutAlt,
 } from "react-icons/fa";
 import SidebarButton from "./components/layout/SidebarButton";
 import Profile from "./components/dashboard/Profile";
@@ -24,11 +25,18 @@ import VideoStorage from "./components/dashboard/VideoStorage";
 import DashboardHome from "./components/dashboard/DashboardHome";
 import { useTheme } from './context/ThemeContext';
 import { adjustColor } from './utils/colorUtils';
+import { useAuth } from './context/AuthContext';
+import { LoadingSpinner } from './components/shared/LoadingSpinner';
 
-const DashboardLayout = ({ user, isStreaming, viewerMode, streamerMode }) => {
+const DashboardLayout = () => {
   const location = useLocation();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [viewerMode, setViewerMode] = useState(false);
+  const [streamerMode, setStreamerMode] = useState(false);
+
+  const { user, logout, authLoading } = useAuth();
 
   const isStreamer = user?.role === 'streamer';
 
@@ -56,8 +64,8 @@ const DashboardLayout = ({ user, isStreaming, viewerMode, streamerMode }) => {
 
   useEffect(() => {
     if (isStreamer) {
-      if (streamerMode === true) {
-        if (isStreaming === true) {
+      if (streamerMode) {
+        if (isStreaming) {
           setCurrentStatus({
             type: 'live',
             label: 'Live Streaming',
@@ -81,7 +89,7 @@ const DashboardLayout = ({ user, isStreaming, viewerMode, streamerMode }) => {
         });
       }
     } else {
-      if (viewerMode === true) {
+      if (viewerMode) {
         setCurrentStatus({
           type: 'watching',
           label: 'Watching Stream',
@@ -132,10 +140,6 @@ const DashboardLayout = ({ user, isStreaming, viewerMode, streamerMode }) => {
   const statusOptions = isStreamer ? streamerStatuses : viewerStatuses;
 
   const toggleSidebar = () => setIsSidebarCollapsed(!isSidebarCollapsed);
-
-  const handleSignOut = () => {
-    console.log("Signing out...");
-  };
 
   const handleHelp = () => {
     window.open('https://github.com/ai-monitoring-system/web-app/blob/main/README.md', '_blank');
@@ -254,7 +258,7 @@ const DashboardLayout = ({ user, isStreaming, viewerMode, streamerMode }) => {
               <div className="relative">
                 {user ? (
                   <img
-                    src={user.photoURL ? user.photoURL : "https://via.placeholder.com/40"}
+                    src={user.photoURL || "https://via.placeholder.com/40"}
                     alt={user.displayName || "Profile"}
                     className="h-10 w-10 rounded-full object-cover cursor-pointer hover:scale-110 transition-transform"
                     onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
@@ -273,7 +277,7 @@ const DashboardLayout = ({ user, isStreaming, viewerMode, streamerMode }) => {
                   <div className="absolute right-0 mt-2 w-44 bg-white dark:bg-gray-800 rounded-md shadow-md py-1 z-[9999] border border-gray-200 dark:border-gray-700">
                     <div className="px-4 py-3 text-sm text-gray-700 dark:text-gray-200 border-b dark:border-gray-700">
                       Signed in as<br />
-                      <span className="font-bold">{user?.displayName || "Guest"}</span>
+                      <span className="font-bold">{user?.displayName || user?.email || "Guest"}</span>
                     </div>
                     
                     <div className="px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
@@ -301,8 +305,19 @@ const DashboardLayout = ({ user, isStreaming, viewerMode, streamerMode }) => {
                         Settings
                       </button>
                       
-                      <button onClick={handleSignOut} className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
-                        Sign out
+                      <button 
+                        onClick={logout}
+                        disabled={authLoading}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 flex items-center"
+                      >
+                        {authLoading ? (
+                          <LoadingSpinner size="sm" />
+                        ) : (
+                          <>
+                            <FaSignOutAlt className="mr-2" />
+                            Sign out
+                          </>
+                        )}
                       </button>
                       
                       <button className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={handleHelp}>

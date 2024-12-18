@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isToday, isSameMonth, startOfWeek, endOfWeek, addWeeks, subWeeks, getWeek } from "date-fns";
-import { FaCalendarAlt, FaVideo, FaChevronLeft, FaChevronRight, FaExclamationTriangle, FaClock, FaTrash } from "react-icons/fa";
+import { FaCalendarAlt, FaVideo, FaChevronLeft, FaChevronRight, FaClock, FaTrash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useInView } from 'react-intersection-observer';
 import "animate.css";

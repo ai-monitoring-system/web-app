@@ -1,5 +1,6 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from '../../context/AuthContext';
 import DashboardLayout from "../../DashboardLayout";
 import SignIn from "../(Auth)/signin/SignIn";
 import SignUp from "../(Auth)/signup/SignUp";
@@ -11,11 +12,16 @@ import Settings from "../../components/dashboard/Settings";
 import Viewer from "../../Viewer";
 import NotFound from "../../components/shared/NotFound";
 import InternalError from "../../components/shared/InternalError";
+import { PageLoader } from '../../components/shared/LoadingSpinner';
 
-const Router = ({ user }) => {
-  // Development bypass - set to true to access protected routes without auth
-  const DEV_MODE = true;  // TODO: Remove in production
+const Router = () => {
+  const { user, loading } = useAuth();
+  const DEV_MODE = true;
   const isAuthenticated = DEV_MODE || user;
+
+  if (loading) {
+    return <PageLoader />;
+  }
 
   return (
     <Routes>
@@ -33,12 +39,7 @@ const Router = ({ user }) => {
         path="/*"
         element={
           isAuthenticated ? (
-            <DashboardLayout
-              user={user}
-              isStreaming={false}
-              viewerMode={false}
-              streamerMode={false}
-            />
+            <DashboardLayout />
           ) : (
             <Navigate to="/welcome" />
           )

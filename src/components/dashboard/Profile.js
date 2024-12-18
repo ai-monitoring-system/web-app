@@ -1,9 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { signInWithPopup, signOut, onAuthStateChanged, updateProfile } from "firebase/auth";
-import { auth, provider } from "../../utils/config";
-import { FaInfoCircle, FaKey, FaRegSmile, FaRegEdit, FaLock, FaShieldAlt, FaSignOutAlt, FaGoogle, FaUserCog } from "react-icons/fa";
+import { auth, googleProvider } from "../../utils/config";
+import { useNavigate } from "react-router-dom";
+import { FaInfoCircle, FaKey, FaRegSmile, FaRegEdit, FaLock, FaShieldAlt, FaSignOutAlt, FaGoogle, FaUserCog, FaCamera } from "react-icons/fa";
+import { useAuth } from '../../context/AuthContext';
+import { LoadingSpinner } from '../shared/LoadingSpinner';
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage } from "../../utils/config";
 
 const Profile = () => {
+  const navigate = useNavigate();
+  const { user, logout, authLoading, error, updateUserProfile } = useAuth();
+  const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // Add local loading state
   // Add color schemes definition
   const colorSchemes = {
     blue: {
@@ -37,32 +46,35 @@ const Profile = () => {
   // For "Account Settings" section:
   const settingsColors = colorSchemes.purple;
 
-  const [user, setUser] = useState(null); // Tracks the current user
   const [isEditing, setIsEditing] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [photoURL, setPhotoURL] = useState("");
-  const [message, setMessage] = useState("");
   const [isPageLoaded, setIsPageLoaded] = useState(false); // Track animation state
   const [copySuccess, setCopySuccess] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const fileInputRef = useRef(null);
 
-  // Listen to auth state changes
+  // Add these animation classes at the top of your component
+  const fadeIn = "transition-all duration-300 ease-in-out";
+  const slideUp = "transform transition-all duration-500 ease-out";
+  const scaleIn = "transition-all duration-300 ease-in-out transform";
+
+  // Update effect to use user from context
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      setDisplayName(currentUser?.displayName || "");
-      setPhotoURL(currentUser?.photoURL || "");
-    });
-
+    // Set initial values from user context
+    setDisplayName(user?.displayName || "");
+    setPhotoURL(user?.photoURL || "");
+    
     // Trigger animation when the component is mounted
-    setTimeout(() => setIsPageLoaded(true), 100); // Delay to ensure animation triggers
-
-    return () => unsubscribe(); // Cleanup the listener on unmount
-  }, []);
+    setTimeout(() => setIsPageLoaded(true), 100);
+  }, [user]);
 
   // Sign in function
   async function mySignIn() {
     try {
-      await signInWithPopup(auth, provider);
+      await signInWithPopup(auth, googleProvider);
     } catch (error) {
       console.error("Error signing in:", error);
       setMessage("Failed to sign in. Please try again.");
@@ -70,40 +82,108 @@ const Profile = () => {
   }
 
   // Sign out function
-  async function mySignOut() {
+  const handleSignOut = async () => {
     try {
-      await signOut(auth);
-      setMessage("You have successfully signed out.");
-    } catch (error) {
-      console.error("Error signing out:", error);
-      setMessage("Failed to sign out. Please try again.");
+      await logout();
+      // Navigation is handled by AuthContext
+    } catch (err) {
+      setMessage(err.message);
     }
-  }
+  };
 
-  // Save updated profile information
+  // Handle file selection
+  const handleImageSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      setMessage("Image size should be less than 5MB");
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.match('image.*')) {
+      setMessage("Please select an image file");
+      return;
+    }
+
+    // Clear any previous error messages
+    setMessage("");
+    setImageFile(file);
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result);
+    };
+    reader.onerror = () => {
+      setMessage("Error reading file");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Handle image upload
+  const uploadImage = async () => {
+    if (!imageFile) return null;
+
+    try {
+      // Create a unique filename using timestamp
+      const timestamp = Date.now();
+      const filename = `${timestamp}_${imageFile.name}`;
+      const storageRef = ref(storage, `profile-photos/${user.uid}/${filename}`);
+      
+      // Upload the file
+      const snapshot = await uploadBytes(storageRef, imageFile);
+      console.log('Image uploaded successfully');
+      
+      // Get the download URL
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      console.log('Download URL obtained:', downloadURL);
+      
+      return downloadURL;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      throw new Error(`Failed to upload image: ${error.message}`);
+    }
+  };
+
+  // Update save handler to use local loading state
   const handleSave = async () => {
-    if (!displayName || !photoURL) {
-      setMessage("Name and Photo URL cannot be empty.");
+    if (!displayName) {
+      setMessage("Name cannot be empty.");
       return;
     }
 
     try {
-      // Ensure user is authenticated
-      if (!user) {
-        throw new Error("No authenticated user found.");
+      setIsLoading(true);
+      setMessage(""); // Clear any previous messages
+
+      let updatedPhotoURL = user.photoURL;
+
+      // Only attempt upload if there's a new image
+      if (imageFile) {
+        console.log('Uploading new image...');
+        updatedPhotoURL = await uploadImage();
+        console.log('New photo URL:', updatedPhotoURL);
       }
 
-      // Update profile using Firebase's modular `updateProfile`
-      await updateProfile(user, {
+      // Update profile with new information
+      await updateUserProfile({
         displayName,
-        photoURL,
+        photoURL: updatedPhotoURL,
       });
 
+      console.log('Profile updated successfully');
       setMessage("Profile updated successfully.");
       setIsEditing(false);
+      setImageFile(null);
+      setImagePreview("");
     } catch (error) {
-      console.error("Error updating profile:", error); // Log the actual error
+      console.error("Error updating profile:", error);
       setMessage(error.message || "Failed to update profile. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -129,6 +209,9 @@ const Profile = () => {
       console.error('Failed to copy text: ', err);
     }
   };
+
+  // Show either context error or local message
+  const displayMessage = error || message;
 
   return (
       <div
@@ -163,11 +246,18 @@ const Profile = () => {
               </div>
               <div className="flex items-center gap-3 mt-4">
                 <button
-                  onClick={mySignOut}
-                  className="px-6 py-2 bg-red-500/90 hover:bg-red-600 text-white font-semibold rounded-full shadow-md transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 flex items-center gap-2"
+                  onClick={handleSignOut}
+                  disabled={authLoading}
+                  className="px-6 py-2 bg-red-500/90 hover:bg-red-600 text-white font-semibold rounded-full shadow-md transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <FaSignOutAlt className="text-sm" />
-                  Sign Out
+                  {authLoading ? (
+                    <LoadingSpinner size="sm" light />
+                  ) : (
+                    <>
+                      <FaSignOutAlt className="text-sm" />
+                      Sign Out
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -481,48 +571,136 @@ const Profile = () => {
 
       {/* Edit Profile Modal */}
       {isEditing && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div
-            className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg w-full max-w-lg scale-95 transition-transform duration-200 ease-out"
-            style={{ animation: "zoomIn 0.3s ease-out forwards" }}
+        <div 
+          className={`fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 backdrop-blur-sm
+            ${fadeIn} ${isEditing ? 'opacity-100' : 'opacity-0'}`}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsEditing(false);
+              setImageFile(null);
+              setImagePreview("");
+              setMessage("");
+            }
+          }}
+        >
+          <div 
+            className={`bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-lg overflow-hidden
+              ${slideUp} ${isEditing ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
           >
-            <h2 className="text-2xl font-bold mb-4">Edit Profile</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-gray-700 dark:text-gray-300 mb-2">
+            {/* Header with gradient animation */}
+            <div 
+              className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4
+                relative overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent
+                animate-shimmer" />
+              <h2 className="text-2xl font-bold text-white relative z-10">Edit Profile</h2>
+            </div>
+
+            <div className="p-6">
+              {/* Profile Photo Section with hover effects */}
+              <div className="mb-8">
+                <label className="block text-gray-700 dark:text-gray-300 text-sm font-semibold mb-3">
+                  Profile Photo
+                </label>
+                <div className="flex items-center space-x-6">
+                  <div className="relative group">
+                    <div className={`w-24 h-24 rounded-full overflow-hidden ring-4 ring-blue-100 
+                      dark:ring-blue-900 ${scaleIn} group-hover:ring-blue-400 dark:group-hover:ring-blue-600`}>
+                      <img
+                        src={imagePreview || user.photoURL || "https://via.placeholder.com/100"}
+                        alt="Profile"
+                        className={`w-full h-full object-cover ${scaleIn} group-hover:scale-110`}
+                      />
+                    </div>
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className={`absolute inset-0 flex items-center justify-center bg-black/50 
+                        rounded-full ${fadeIn} opacity-0 group-hover:opacity-100`}
+                    >
+                      <div className={`bg-white/10 p-2 rounded-full backdrop-blur-sm ${scaleIn} 
+                        group-hover:scale-110`}>
+                        <FaCamera className="text-white text-xl" />
+                      </div>
+                    </button>
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageSelect}
+                    className="hidden"
+                  />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Upload new photo
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Click the image to change your profile photo. Maximum file size: 5MB
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Display Name Input with focus animation */}
+              <div className="mb-6">
+                <label className="block text-gray-700 dark:text-gray-300 text-sm font-semibold mb-2">
                   Display Name
                 </label>
                 <input
                   type="text"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
+                  className={`w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-700/50 
+                    focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-100
+                    ${fadeIn} focus:scale-[1.01]`}
+                  placeholder="Enter your display name"
                 />
               </div>
-              <div>
-                <label className="block text-gray-700 dark:text-gray-300 mb-2">
-                  Photo URL
-                </label>
-                <input
-                  type="text"
-                  value={photoURL}
-                  onChange={(e) => setPhotoURL(e.target.value)}
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-100"
-                />
-              </div>
-              {message && <p className="text-sm text-red-500">{message}</p>}
-              <div className="flex justify-end space-x-4">
+
+              {/* Message with animation */}
+              {displayMessage && (
+                <div 
+                  className={`mb-6 p-4 rounded-lg text-sm font-medium ${fadeIn}
+                    ${displayMessage.includes('success')
+                      ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400'
+                      : 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400'}`}
+                >
+                  {displayMessage}
+                </div>
+              )}
+
+              {/* Action Buttons with hover animations */}
+              <div className="flex justify-end space-x-3">
                 <button
-                  onClick={() => setIsEditing(false)}
-                  className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-full transition-transform duration-300 hover:scale-105"
+                  onClick={() => {
+                    setIsEditing(false);
+                    setImageFile(null);
+                    setImagePreview("");
+                    setMessage("");
+                  }}
+                  className={`px-5 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 
+                    dark:text-gray-200 font-medium rounded-lg ${fadeIn} hover:-translate-y-0.5
+                    hover:bg-gray-200 dark:hover:bg-gray-600`}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSave}
-                  className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-full transition-transform duration-300 hover:scale-105"
+                  disabled={isLoading || authLoading}
+                  className={`px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg 
+                    ${fadeIn} hover:-translate-y-0.5 hover:bg-blue-700
+                    disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0
+                    flex items-center space-x-2`}
                 >
-                  Save
+                  {isLoading ? (
+                    <>
+                      <LoadingSpinner size="sm" light />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    'Save Changes'
+                  )}
                 </button>
               </div>
             </div>
