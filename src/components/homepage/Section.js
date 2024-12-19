@@ -36,6 +36,7 @@ const Section = ({ heading, description, buttonLabel, buttonHref, image, reverse
               src={image}
               alt={heading || ""}
               className="rounded-lg shadow-lg max-w-full h-auto"
+              loading="lazy"
             />
           </div>
         )}
