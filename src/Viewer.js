@@ -1,11 +1,7 @@
+import * as cocoSsd from "@tensorflow-models/coco-ssd";
+import "@tensorflow/tfjs"; // Ensure TensorFlow.js is loaded
 import React, { useState, useRef, useEffect } from "react";
-import {
-  collection,
-  doc,
-  getDoc,
-  onSnapshot,
-  setDoc,
-} from "firebase/firestore";
+import { collection, doc, getDoc, onSnapshot, setDoc } from "firebase/firestore";
 import { db, servers } from "./config";
 import { collectIceCandidates, cleanupMediaResources } from "./utils";
 
@@ -14,8 +10,60 @@ const Viewer = () => {
   const [hasJoined, setHasJoined] = useState(false);
   const [error, setError] = useState("");
   const remoteVideoRef = useRef(null);
+  const overlayCanvasRef = useRef(null);
   const pcRef = useRef(null);
   const remoteStreamRef = useRef(null);
+  const [model, setModel] = useState(null);
+
+  const loadModel = async () => {
+    try {
+      const loadedModel = await cocoSsd.load();
+      setModel(loadedModel);
+      console.log("YOLO model loaded successfully.");
+    } catch (error) {
+      console.error("Error loading YOLO model:", error);
+    }
+  };
+
+  const runDetection = async () => {
+    if (
+      !model ||
+      !remoteVideoRef.current ||
+      remoteVideoRef.current.videoWidth === 0 ||
+      remoteVideoRef.current.videoHeight === 0
+    ) {
+      requestAnimationFrame(runDetection); // Wait and retry
+      return;
+    }
+
+    const video = remoteVideoRef.current;
+    const canvas = overlayCanvasRef.current;
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const predictions = await model.detect(video);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    predictions.forEach((prediction) => {
+      if (prediction.class === "person") {
+        const [x, y, width, height] = prediction.bbox;
+        ctx.strokeStyle = "red";
+        ctx.lineWidth = 4;
+        ctx.strokeRect(x, y, width, height);
+        ctx.font = "16px Arial";
+        ctx.fillStyle = "red";
+        ctx.fillText(
+          `${prediction.class} (${Math.round(prediction.score * 100)}%)`,
+          x,
+          y - 10
+        );
+      }
+    });
+
+    requestAnimationFrame(runDetection); // Continue detection loop
+  };
 
   const joinStream = async () => {
     if (!callId) {
@@ -33,8 +81,14 @@ const Viewer = () => {
       event.streams[0].getTracks().forEach((track) => {
         remoteStream.addTrack(track);
       });
+
       if (remoteVideoRef.current) {
         remoteVideoRef.current.srcObject = remoteStream;
+
+        // Wait for video metadata to load before starting detection
+        remoteVideoRef.current.onloadedmetadata = () => {
+          runDetection(); // Start detection once video is ready
+        };
       }
     };
 
@@ -78,6 +132,7 @@ const Viewer = () => {
   };
 
   useEffect(() => {
+    loadModel(); // Load YOLO model on component mount
     return () => cleanupMediaResources(pcRef.current, remoteStreamRef.current, remoteVideoRef);
   }, []);
 
@@ -102,13 +157,17 @@ const Viewer = () => {
           </button>
         </div>
       )}
-      <div className="w-full max-w-2xl">
+      <div className="relative w-full max-w-2xl">
         <video
           ref={remoteVideoRef}
           autoPlay
           playsInline
           className="w-full h-auto bg-black rounded-md"
         ></video>
+        <canvas
+          ref={overlayCanvasRef}
+          className="absolute top-0 left-0 w-full h-full pointer-events-none"
+        ></canvas>
       </div>
     </div>
   );
