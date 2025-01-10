@@ -42,6 +42,7 @@ const Viewer = () => {
       event.streams.forEach((stream) => {
         console.log("Adding stream:", stream);
         stream.getTracks().forEach((track) => {
+          console.log(`Track added: ${track.kind}`);
           remoteStream.addTrack(track);
         });
       });
@@ -62,16 +63,21 @@ const Viewer = () => {
 
         mediaRecorder.ondataavailable = (event) => {
           if (event.data.size > 0) {
-            console.log("Recording chunk available");
+            console.log("Recording chunk available:", event.data.size, "bytes");
             recordedChunks.push(event.data);
           }
         };
 
         mediaRecorder.onstop = () => {
-          console.log("MediaRecorder stopped");
-          blob = new Blob(recordedChunks, { type: "video/webm" });
-          url = URL.createObjectURL(blob);
-          setDownloadUrl(url);
+          if (recordedChunks.length > 0) {
+            console.log("Compiling recorded chunks...");
+            blob = new Blob(recordedChunks, { type: "video/webm" });
+            url = URL.createObjectURL(blob);
+            setDownloadUrl(url);
+            console.log("Recording URL created:", url);
+          } else {
+            console.warn("No chunks recorded.");
+          }
 
           if (!recordingStopped) {
             recordedChunks.splice(0, recordedChunks.length);
@@ -92,6 +98,12 @@ const Viewer = () => {
     pc.onicecandidate = (event) => {
       if (event.candidate) {
         console.log("Sending ICE candidate:", event.candidate);
+        const candidate = {
+          candidate: event.candidate.candidate,
+          sdpMid: event.candidate.sdpMid,
+          sdpMLineIndex: event.candidate.sdpMLineIndex,
+        };
+        setDoc(doc(collection(doc(db, "calls", callId), "answerCandidates")), candidate);
       }
     };
 
@@ -136,11 +148,16 @@ const Viewer = () => {
     });
 
     pc.onconnectionstatechange = () => {
-      console.log("Connection state:", pc.connectionState);
-      if (pc.connectionState === "disconnected" && mediaRecorder) {
+      console.log("Connection state changed to:", pc.connectionState);
+      if (pc.connectionState === "connected") {
+        console.log("PeerConnection is established.");
+      } else if (["failed", "disconnected"].includes(pc.connectionState)) {
+        console.error("Connection failed or disconnected.");
         clearInterval(recordingInterval);
-        mediaRecorder.stop();
-        setRecordingStopped(true);
+        if (mediaRecorder && mediaRecorder.state !== "inactive") {
+          mediaRecorder.stop();
+          setRecordingStopped(true);
+        }
       }
     };
 
