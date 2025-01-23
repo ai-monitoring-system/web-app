@@ -1,0 +1,89 @@
+@use "sass:math";
+@use "./variables.scss" as *;
+
+.footerWrapper {
+  width: 100%;
+  background-color: #1d4ed8; // Primary blue background for the footer
+  padding: 1rem 0.5rem; // Reduced padding for a more compact footer
+  display: flex;
+  justify-content: center;
+
+  .footer {
+    @include flex(
+      $align: center,
+      $justify: center,
+      $direction: column,
+      $gap: 0.5rem // Reduced gap between elements for tighter layout
+    );
+    @include font($size: 1rem, $color: #f9fafb, $align: center); // Keep font size the same
+    max-width: var(--max-width);
+    margin: 0 auto;
+    text-align: center;
+
+    .logoContainer {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .logoButton {
+      border: none;
+      background: none; // Remove button styling
+      padding: 0;
+      cursor: pointer; // Keep pointer cursor for usability
+      outline: none;
+
+      &:hover {
+        transform: none; // Remove hover effects
+        filter: none;
+      }
+
+      &:focus {
+        outline: none; // Remove focus outline
+      }
+    }
+
+    .logo {
+      width: 70px; // Keep logo size the same
+      height: 70px;
+      object-fit: contain; // Ensures the logo scales properly without distortion
+      margin-bottom: 0.1rem; // Reduced spacing below the logo
+    }
+
+    .socialIcons {
+      display: flex;
+      gap: 0.8rem; // Reduced gap between icons for tighter spacing
+      justify-content: center;
+      margin-top: 0.1rem; // Reduced space above the GitHub icon
+
+      a {
+        color: #f9fafb; // Link color set to white
+        text-decoration: none;
+        transition: color 0.3s ease;
+
+        &:hover {
+          color: #e0f2fe; // Accent light blue on hover
+        }
+      }
+    }
+
+    .icon {
+      @include flexCenter;
+      @include size($width: 2.5rem, $height: 2.5rem); // Keep icon size the same
+      font-size: 2rem; // Keep icon font size the same
+      margin: 0; // Removed additional margin for tighter spacing
+    }
+
+    .text {
+      font-size: 1rem; // Keep text size the same
+      color: #f9fafb; // White text for contrast
+      margin: 0; // Remove extra margins to keep layout compact
+
+      &.copyright {
+        margin-top: 0.3rem; // Slightly reduced margin for tighter spacing
+        font-size: 0.9rem; // Keep secondary text size the same
+        color: #d1d5db; // Muted gray for less emphasis
+      }
+    }
+  }
+}

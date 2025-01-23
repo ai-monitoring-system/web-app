@@ -1,0 +1,19 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: AI Monitoring System Public Website
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Cameron Vandermeersch
+  - given-names: Tanzim Hossain
+  - given-names: Nafiz Hasan
+  - given-names: Yousef Kart
+repository-code: 'https://github.com/uhelp-dev/4990-project'
+url: 'https://4990-project.vercel.app/'
+license: MIT
+version: '1.0'
+date-released: '2025-04-01'

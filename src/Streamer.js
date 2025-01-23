@@ -1,31 +1,33 @@
 import React, { useRef, useEffect, useState } from "react";
 import { collection, doc, setDoc, onSnapshot } from "firebase/firestore";
-import { auth, db, servers } from "./config";
-import { collectIceCandidates, cleanupMediaResources } from "./utils";
+import { auth, db, servers } from "./utils/config";
+import { collectIceCandidates, cleanupMediaResources } from "./utils/utils";
 
 const Streamer = () => {
   const [callId, setCallId] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [videoDevices, setVideoDevices] = useState([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState("");
+  const [error, setError] = useState(null); // New error state for user feedback
   const pcRef = useRef(null);
   const webcamVideoRef = useRef(null);
   const localStreamRef = useRef(null);
 
   useEffect(() => {
-    // Fetch available video devices
+    // Fetch available video devices on mount
     const getVideoDevices = async () => {
       try {
         const devices = await navigator.mediaDevices.enumerateDevices();
-        const videoInputs = devices.filter(
-          (device) => device.kind === "videoinput"
-        );
+        const videoInputs = devices.filter((device) => device.kind === "videoinput");
         setVideoDevices(videoInputs);
         if (videoInputs.length > 0) {
           setSelectedDeviceId(videoInputs[0].deviceId);
+        } else {
+          setError("No video devices found.");
         }
       } catch (error) {
         console.error("Error fetching video devices:", error);
+        setError("Failed to fetch video devices.");
       }
     };
 
@@ -42,8 +44,10 @@ const Streamer = () => {
       if (webcamVideoRef.current) {
         webcamVideoRef.current.srcObject = localStream;
       }
+      console.log("Camera started with device ID:", deviceId);
     } catch (error) {
       console.error("Error accessing media devices:", error);
+      setError("Failed to start camera. Please check device permissions.");
     }
   };
 
@@ -52,23 +56,26 @@ const Streamer = () => {
       startCamera(selectedDeviceId);
     }
 
-    // Cleanup media resources on component unmount
+    // Cleanup media resources on unmount
     return () => {
-      cleanupMediaResources(
-        pcRef.current,
-        localStreamRef.current,
-        webcamVideoRef
-      );
+      cleanupMediaResources(pcRef.current, localStreamRef.current, webcamVideoRef);
     };
   }, [selectedDeviceId]);
 
   const startStreaming = async () => {
     if (!localStreamRef.current) {
       console.error("No local stream available");
+      setError("No local stream available. Please check your camera.");
       return;
     }
 
     try {
+      if (!auth.currentUser) {
+        console.error("User not authenticated");
+        setError("User is not authenticated. Please log in.");
+        return;
+      }
+
       const pc = new RTCPeerConnection(servers);
       pcRef.current = pc;
 
@@ -77,12 +84,12 @@ const Streamer = () => {
         pc.addTrack(track, localStreamRef.current);
       });
 
-      // Create a Firestore document to manage the call with the user ID as the doc ID
+      // Create Firestore document for the call
       const callDoc = doc(db, "calls", auth.currentUser.uid);
       const offerCandidates = collection(callDoc, "offerCandidates");
       const answerCandidates = collection(callDoc, "answerCandidates");
 
-      setCallId(callDoc.id); // This will now be the user's ID
+      setCallId(callDoc.id); // Set call ID for display
 
       // Collect ICE candidates
       collectIceCandidates(pc, offerCandidates);
@@ -98,6 +105,8 @@ const Streamer = () => {
       };
       await setDoc(callDoc, { offer });
 
+      console.log("Offer created and saved:", offer);
+
       // Listen for answer and update connection
       onSnapshot(callDoc, (snapshot) => {
         const data = snapshot.data();
@@ -105,6 +114,7 @@ const Streamer = () => {
           const answerDescription = new RTCSessionDescription(data.answer);
           pc.setRemoteDescription(answerDescription).catch((e) => {
             console.error("Failed to set remote description:", e);
+            setError("Error setting remote description.");
           });
         }
       });
@@ -114,27 +124,42 @@ const Streamer = () => {
         snapshot.docChanges().forEach((change) => {
           if (change.type === "added") {
             const candidate = new RTCIceCandidate(change.doc.data());
-            pc.addIceCandidate(candidate).catch((e) => {
-              console.error("Error adding received ICE candidate", e);
-            });
+            if (pc.remoteDescription) {
+              pc.addIceCandidate(candidate).catch((e) => {
+                console.error("Error adding received ICE candidate:", e);
+                setError("Error adding ICE candidate.");
+              });
+            } else {
+              console.warn("Remote description is not set yet.Candidate ignored.");
+            }
           }
         });
       });
 
       setIsStreaming(true);
+      setError(null); // Clear errors if successful
+      console.log("Streaming started successfully.");
     } catch (error) {
       console.error("Error starting streaming:", error);
+      setError("Failed to start streaming. Please try again.");
     }
   };
 
   return (
     <div className="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 p-6 rounded-lg shadow-lg mx-auto mt-12 flex flex-col gap-12 max-w-screen-xl">
+      {/* Error Display */}
+      {error && (
+        <div className="bg-red-50 dark:bg-red-800 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-200 rounded-lg p-3 shadow-md">
+          <span className="text-md font-semibold">{error}</span>
+        </div>
+      )}
+
       {/* Left Section: Controls */}
       <div className="flex flex-col flex-grow">
         <h2 className="text-3xl font-semibold text-gray-800 dark:text-gray-100 mb-6">
           Streamer Mode
         </h2>
-  
+
         {/* Camera Selector */}
         <div className="mb-6">
           <label className="block text-gray-600 dark:text-gray-400 mb-2 text-lg">
@@ -152,7 +177,7 @@ const Streamer = () => {
             ))}
           </select>
         </div>
-  
+
         {/* Start Streaming Button */}
         {isStreaming ? (
           <div className="text-center w-full py-4 bg-green-500 dark:bg-green-600 text-white font-semibold rounded-lg text-lg mt-6">
@@ -168,7 +193,7 @@ const Streamer = () => {
           </button>
         )}
       </div>
-  
+
       {/* Right Section: Video Preview */}
       <div className="flex justify-center items-center bg-gray-100 dark:bg-gray-700 rounded-lg shadow-inner p-6 w-full lg:w-[800px] mx-auto">
         <video
@@ -183,4 +208,4 @@ const Streamer = () => {
   );
 };
 
-export default Streamer;
+export default Streamer; 

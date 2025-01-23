@@ -1,0 +1,162 @@
+$mobileWidth: 770px;
+
+@mixin flexCenter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin fillParent {
+  width: 100%;
+  height: 100%;
+}
+
+@mixin button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 0.25rem;
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 4px;
+  transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+
+  -webkit-touch-callout: none;
+  -ms-user-select: none; 
+  -webkit-user-select: none;
+  -moz-user-select: none; 
+  -khtml-user-select: none;
+  user-select: none;
+
+  &:hover {
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 5px;
+  }
+}
+
+@mixin size(
+  $width: false,
+  $height: false,
+  $minWidth: false,
+  $minHeight: false,
+  $maxWidth: false,
+  $maxHeight: false
+) {
+  @if $width {
+    width: $width;
+  }
+
+  @if $height {
+    height: $height;
+  }
+
+  @if $minWidth {
+    min-width: $minWidth;
+  }
+
+  @if $minHeight {
+    min-height: $minHeight;
+  }
+
+  @if $maxWidth {
+    max-width: $maxWidth;
+  }
+
+  @if $maxHeight {
+    max-height: $maxHeight;
+  }
+}
+
+@mixin font(
+  $size: false,
+  $weight: false,
+  $lineHeight: false,
+  $color: false,
+  $align: false
+) {
+  @if $size {
+    font-size: $size;
+  }
+
+  @if $weight {
+    font-weight: $weight;
+  }
+
+  @if $lineHeight {
+    line-height: $lineHeight;
+  }
+
+  @if $color {
+    color: $color;
+  }
+
+  @if $align {
+    text-align: $align;
+  }
+}
+
+@mixin flex-variant(
+  $display,
+  $direction: false,
+  $align: false,
+  $justify: false,
+  $wrap: false,
+  $gap: false
+) {
+  display: $display;
+
+  @if $direction {
+    flex-direction: $direction;
+  }
+
+  @if $align {
+    align-items: $align;
+  }
+
+  @if $justify {
+    justify-content: $justify;
+  }
+
+  @if $wrap {
+    flex-wrap: $wrap;
+  }
+
+  @if $gap {
+    gap: $gap;
+  }
+}
+
+@mixin flex(
+  $direction: false,
+  $align: false,
+  $justify: false,
+  $wrap: false,
+  $gap: false
+) {
+  @include flex-variant(
+    flex,
+    $direction: $direction,
+    $align: $align,
+    $justify: $justify,
+    $wrap: $wrap,
+    $gap: $gap
+  );
+}
+
+@mixin inline-flex(
+  $direction: false,
+  $align: false,
+  $justify: false,
+  $wrap: false,
+  $gap: false
+) {
+  @include flex-variant(
+    inline-flex,
+    $direction: $direction,
+    $align: $align,
+    $justify: $justify,
+    $wrap: $wrap,
+    $gap: $gap
+  );
+}

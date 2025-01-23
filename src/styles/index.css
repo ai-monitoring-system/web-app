@@ -1,0 +1,391 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Sidebar Styling */
+.sidebar-button {
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.sidebar-button:hover {
+  background-color: rgba(255, 255, 255, 0.2); /* Subtle hover background */
+  transform: scale(1.05); /* Slight scale effect */
+}
+
+/* Collapsed Sidebar Tooltip */
+.sidebar-collapsed-tooltip {
+  position: absolute;
+  left: 70px; /* Adjust for sidebar width */
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.sidebar-button:hover .sidebar-collapsed-tooltip {
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(-5px); /* Subtle upward movement */
+}
+
+/* Adjusted Image Placement Fixes */
+.sectionWrapper .section .imageContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+  padding: 1rem; /* Add padding for spacing */
+  max-width: 100%; /* Ensure the container doesn't overflow */
+  height: auto; /* Automatically adjust height based on content */
+}
+
+.sectionWrapper .section .imageContainer .image {
+  width: 100%; /* Ensure the image doesn't overflow horizontally */
+  max-width: 400px; /* Restrict the maximum width */
+  height: auto; /* Maintain the aspect ratio */
+  object-fit: contain; /* Ensure the image fits within the container without cropping */
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth hover animation */
+}
+
+.sectionWrapper .section .imageContainer .image:hover {
+  transform: scale(1.05); /* Slight zoom-in effect on hover */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Stronger shadow on hover */
+}
+
+/* Ensure the container height doesn't expand unnecessarily */
+.sectionWrapper .section .imageContainer {
+  overflow: hidden; /* Prevent content spill */
+  aspect-ratio: 4 / 3; /* Maintain a specific aspect ratio for the container */
+}
+
+/* For Smaller Screens */
+@media (max-width: 768px) {
+  .sectionWrapper .section .imageContainer {
+    padding: 0.5rem; /* Reduce padding on smaller screens */
+    aspect-ratio: 16 / 9; /* Adjust the aspect ratio for smaller screens */
+  }
+
+  .sectionWrapper .section .imageContainer .image {
+    width: 90%; /* Allow more flexibility on smaller screens */
+    max-width: none; /* Disable max-width for responsiveness */
+  }
+}
+
+/* Card Styling */
+.card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+/* Quick Action Cards */
+.quick-action-card {
+  transition: box-shadow 0.3s ease-in-out, transform 0.2s ease;
+}
+
+.quick-action-card:hover {
+  box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-in-out;
+}
+
+/* Dark Mode Support */
+[data-theme="dark"] {
+  --background-color: #1e1e2d;
+  --text-color: #f5f5f5;
+  --card-bg: #2a2a40;
+  --sidebar-bg: #1e1e2d;
+  --sidebar-hover-bg: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .sidebar-button {
+  background-color: var(--sidebar-bg);
+}
+
+[data-theme="dark"] .sidebar-button:hover {
+  background-color: var(--sidebar-hover-bg);
+}
+
+[data-theme="dark"] .card {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+}
+
+/* Breadcrumb Styling */
+nav[aria-label="breadcrumb"] ol {
+  display: flex;
+  align-items: center;
+}
+
+nav[aria-label="breadcrumb"] ol li {
+  margin: 0;
+}
+
+nav[aria-label="breadcrumb"] a {
+  text-decoration: none;
+  transition: color 0.2s ease-in-out;
+}
+
+nav[aria-label="breadcrumb"] a:hover {
+  color: #1d4ed8; /* Tailwind's blue-600 */
+}
+
+/* Stats Overview */
+.stats-card {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease-in-out;
+}
+
+.stats-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Button Hover */
+button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transition: background-color 0.2s ease;
+    text-decoration: none; 
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); 
+    /* transform: translateY(-2px); slow */
+    transition: transform 0.5s ease;
+    transform: translateY(-2px); /* slow */
+}
+
+/* Card Hover */
+.card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Button Underline Navbar */
+.nav-link {
+  position: relative;
+  display: inline-block; /* Required for proper positioning */
+  text-decoration: none; /* Prevent text underline */
+}
+
+.nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: -12px; /* Adjust position of underline farther below the button */
+  left: 0;
+  width: 0;
+  height: 3px; /* Thickness of the underline */
+  background-color: #1d4ed8; /* Underline color */
+  transition: width 0.3s ease-in-out; /* Smooth animation */
+}
+
+.nav-link:hover::after {
+  width: 100%; /* Expand underline on hover */
+}
+
+/* Update the theme transition classes to be conditional based on theme change direction */
+.theme-transition.to-dark,
+.theme-transition.to-dark * {
+  transition: background-color 0.3s ease, 
+              color 0.3s ease,
+              border-color 0.3s ease,
+              opacity 0.3s ease,
+              background-image 0.3s ease !important;
+}
+
+.theme-transition.to-light,
+.theme-transition.to-light * {
+  transition: none !important;
+}
+
+/* Update text transition classes */
+.text-gray-800,
+.text-gray-900,
+.text-gray-700,
+.text-gray-600,
+.text-gray-500,
+.text-gray-400,
+.text-gray-300,
+.text-gray-200,
+.text-gray-100,
+.dark\:text-gray-100,
+.dark\:text-gray-200,
+.dark\:text-gray-300,
+.dark\:text-gray-400,
+.dark\:text-gray-500,
+.dark\:text-gray-600,
+.dark\:text-gray-700,
+.dark\:text-gray-800,
+.dark\:text-gray-900 {
+  transition: color 0.3s ease;
+}
+
+/* Add transition for background colors */
+.bg-white,
+.bg-gray-50,
+.bg-gray-100,
+.bg-gray-200,
+.dark\:bg-gray-700,
+.dark\:bg-gray-800,
+.dark\:bg-gray-900 {
+  transition: background-color 0.3s ease;
+}
+
+/* Add transition for borders */
+.border-gray-100,
+.border-gray-200,
+.border-gray-300,
+.dark\:border-gray-600,
+.dark\:border-gray-700,
+.dark\:border-gray-800 {
+  transition: border-color 0.3s ease;
+}
+
+/* Add these additional transition classes for gradient text */
+.bg-clip-text,
+.text-transparent,
+.bg-gradient-to-r {
+  transition: background-image 0.3s ease,
+              background-color 0.3s ease,
+              color 0.3s ease;
+  -webkit-transition: background-image 0.3s ease,
+                     background-color 0.3s ease,
+                     color 0.3s ease;
+}
+
+/* Add specific transitions for the gradient text colors */
+[class*='from-']:not([class*='via-']):not([class*='to-']),
+[class*='via-'],
+[class*='to-'],
+.dark\:from-purple-400,
+.dark\:to-purple-300,
+.dark\:from-blue-400,
+.dark\:to-blue-300,
+.dark\:from-green-400,
+.dark\:to-green-300 {
+  transition: all 0.3s ease;
+}
+
+/* Add these transition classes for input fields */
+input[type="text"],
+input[type="color"] {
+  transition: all 0.3s ease,
+              background-color 0.3s ease,
+              border-color 0.3s ease,
+              color 0.3s ease !important;
+}
+
+/* Add specific transitions for the flex container and its children */
+.flex-1,
+.flex input {
+  transition: all 0.3s ease,
+              background-color 0.3s ease,
+              border-color 0.3s ease,
+              color 0.3s ease !important;
+}
+
+/* Add transition classes for select elements */
+select,
+select option {
+  transition: all 0.3s ease,
+              background-color 0.3s ease,
+              border-color 0.3s ease,
+              color 0.3s ease !important;
+}
+
+/* Override transitions for light mode */
+.theme-transition.to-light select,
+.theme-transition.to-light select option,
+.theme-transition.to-light select * {
+  transition: none !important;
+}
+
+/* Ensure dark mode transitions are smooth */
+.theme-transition.to-dark select,
+.theme-transition.to-dark select option,
+.theme-transition.to-dark select * {
+  transition: background-color 0.3s ease,
+              color 0.3s ease,
+              border-color 0.3s ease !important;
+}
+
+/* Custom Scrollbar Styles */
+.scrollbar-thin::-webkit-scrollbar {
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #CBD5E0;
+  border-radius: 3px;
+}
+
+.dark .scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #4A5568;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #A0AEC0;
+}
+
+.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #2D3748;
+}
+
+/* Hide scrollbar for Firefox */
+.scrollbar-thin {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+/* Smooth scrolling */
+.snap-x {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Ensure snap points work properly */
+.snap-start {
+  scroll-snap-align: start;
+}
+
+.snap-mandatory {
+  scroll-snap-type: x mandatory;
+}

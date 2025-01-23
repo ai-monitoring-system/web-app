@@ -20,7 +20,7 @@ const HeaderIcons = ({ user }) => {
       {/* Profile Picture or Fallback */}
       {user && !imageError ? (
         <img
-          src={user.photoURL || "https://via.placeholder.com/40"} // Use Google photoURL
+          src={user.photoURL ? user.photoURL : "https://via.placeholder.com/40"} // Use Google photoURL
           alt={user.displayName || "Profile"}
           className="h-10 w-10 rounded-full object-cover cursor-pointer hover:scale-110 transition-transform"
           onError={() => setImageError(true)} // Fallback on error
