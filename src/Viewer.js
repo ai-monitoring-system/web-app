@@ -8,6 +8,7 @@ import {
 } from "firebase/firestore";
 import { auth, db, servers } from "./utils/config";
 import { collectIceCandidates, cleanupMediaResources } from "./utils/utils";
+import { requestPermissionAndGetToken } from "./hooks/useFCM";
 
 const Viewer = () => {
   const [callId, setCallId] = useState("");
@@ -138,6 +139,25 @@ const Viewer = () => {
     };
   }, []);
 
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+
+  const handleEnableNotifications = async () => {
+    if (!auth.currentUser) {
+      alert("Please log in first.");
+      return;
+    }
+    const token = await requestPermissionAndGetToken(
+      auth.currentUser.uid
+    );
+    if (token) {
+      alert("Notifications enabled! Token: " + token);
+      setNotificationsEnabled(true);
+    } else {
+      alert("Failed to get notification token. Check console for details.");
+    }
+  };
+
+
   return (
     <div className="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 p-6 rounded-lg shadow-lg mx-auto mt-12 max-w-screen-xl">
       {/* Header Section */}
@@ -169,13 +189,22 @@ const Viewer = () => {
                 <span className="text-md font-semibold">{error}</span>
               </div>
             ) : (
-              <div className="flex justify-center w-full">
+              <div className="flex flex-col items-center w-full max-w-[600px] mx-auto gap-4 mt-6">
                 <button
                   onClick={joinStream}
-                  className="w-full max-w-[300px] py-4 bg-green-500 dark:bg-green-600 text-white font-semibold rounded-lg text-lg transition duration-150 ease-in-out hover:bg-green-600 dark:hover:bg-green-700 mt-6"
+                  className="w-full py-4 bg-green-500 dark:bg-green-600 text-white font-semibold rounded-lg text-lg transition duration-150 ease-in-out hover:bg-green-600 dark:hover:bg-green-700"
                 >
                   Join Call
                 </button>
+
+                {!notificationsEnabled && (
+                  <button
+                    onClick={handleEnableNotifications}
+                    className="w-full py-4 bg-blue-500 dark:bg-blue-600 text-white font-semibold rounded-lg text-lg transition duration-150 ease-in-out hover:bg-blue-600 dark:hover:bg-blue-700"
+                  >
+                    Enable Notifications
+                  </button>
+                )}
               </div>
             )}
           </div>

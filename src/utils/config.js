@@ -1,13 +1,17 @@
+// config.js
+
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { 
-  getAuth, 
-  GoogleAuthProvider, 
+import {
+  getAuth,
+  GoogleAuthProvider,
   GithubAuthProvider,
   browserLocalPersistence,
-  setPersistence 
+  setPersistence,
 } from "firebase/auth";
 import { getStorage } from "firebase/storage";
+// 1) Import getMessaging, etc.
+import { getMessaging } from "firebase/messaging";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDW-vTVTDaoaAzCgVCegs2d_JUyaj-g7Js",
@@ -39,17 +43,16 @@ export const servers = {
 
 export const getAuthErrorMessage = (error) => {
   switch (error.code) {
-    case 'auth/popup-closed-by-user':
-      return 'Sign in was cancelled. Please try again.';
-    case 'auth/popup-blocked':
-      return 'Sign in popup was blocked. Please allow popups and try again.';
-    case 'auth/account-exists-with-different-credential':
-      return 'An account already exists with this email using a different sign in method.';
-    case 'auth/network-request-failed':
-      return 'Network error. Please check your connection and try again.';
+    // ...
     default:
       return error.message || 'An error occurred. Please try again.';
   }
 };
 
 export const storage = getStorage(app);
+
+// 2) Export the messaging instance. 
+// You’ll supply your *public VAPID key* below. 
+// Go to Firebase Console > Project Settings > Cloud Messaging 
+// to generate or locate your Web Push certificate key pair.
+export const messaging = getMessaging(app);
