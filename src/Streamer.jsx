@@ -16,9 +16,7 @@ const Streamer = () => {
 
   const requestCameraAccess = async () => {
     try {
-      // Ask for camera permission with a simple constraint
       await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-      // Now that permission is granted, enumerate devices
       const devices = await navigator.mediaDevices.enumerateDevices();
       const videoInputs = devices.filter((d) => d.kind === "videoinput");
       setVideoDevices(videoInputs);
@@ -39,17 +37,13 @@ const Streamer = () => {
     try {
       console.log("Attempting to start camera with deviceId:", deviceId);
       const localStream = await navigator.mediaDevices.getUserMedia({
-        video: { deviceId }, // more relaxed constraint
+        video: { deviceId },
         audio: false,
       });
       localStreamRef.current = localStream;
-
       if (webcamVideoRef.current) {
         webcamVideoRef.current.srcObject = localStream;
-        // Some browsers need an explicit play
-        webcamVideoRef.current
-          .play()
-          .catch((e) => console.error("video play error:", e));
+        webcamVideoRef.current.play().catch((e) => console.error("Play error:", e));
       }
       console.log("Camera started successfully.");
     } catch (err) {
@@ -58,18 +52,13 @@ const Streamer = () => {
     }
   };
 
-  // Start or restart camera when selectedDeviceId changes
   useEffect(() => {
     if (selectedDeviceId) {
       startCamera(selectedDeviceId);
     }
     // Cleanup media resources on unmount
     return () => {
-      cleanupMediaResources(
-        pcRef.current,
-        localStreamRef.current,
-        webcamVideoRef
-      );
+      cleanupMediaResources(pcRef.current, localStreamRef.current, webcamVideoRef);
     };
   }, [selectedDeviceId]);
 
@@ -89,23 +78,16 @@ const Streamer = () => {
 
       const pc = new RTCPeerConnection(servers);
       pcRef.current = pc;
-
-      // Add tracks from the local stream
       localStreamRef.current.getTracks().forEach((track) => {
         pc.addTrack(track, localStreamRef.current);
       });
 
-      // Create Firestore document for the call
       const callDoc = doc(db, "calls", auth.currentUser.uid);
       const offerCandidates = collection(callDoc, "offerCandidates");
       const answerCandidates = collection(callDoc, "answerCandidates");
-
       setCallId(callDoc.id);
 
-      // Collect ICE candidates
       collectIceCandidates(pc, offerCandidates);
-
-      // Create & set the offer
       const offerDescription = await pc.createOffer();
       await pc.setLocalDescription(offerDescription);
 
@@ -116,9 +98,6 @@ const Streamer = () => {
       };
       await setDoc(callDoc, { offer });
 
-      console.log("Offer created and saved:", offer);
-
-      // Listen for answer
       onSnapshot(callDoc, (snapshot) => {
         const data = snapshot.data();
         if (data?.answer && !pc.currentRemoteDescription) {
@@ -130,24 +109,32 @@ const Streamer = () => {
         }
       });
 
-      // Listen for answer candidates
       onSnapshot(answerCandidates, (snapshot) => {
         snapshot.docChanges().forEach((change) => {
           if (change.type === "added") {
             const candidate = new RTCIceCandidate(change.doc.data());
             if (pc.remoteDescription) {
               pc.addIceCandidate(candidate).catch((e) => {
-                console.error("Error adding received ICE candidate:", e);
+                console.error("Error adding ICE candidate:", e);
                 setError("Error adding ICE candidate.");
               });
-            } else {
-              console.warn(
-                "Remote description not set yet. Candidate ignored."
-              );
             }
           }
         });
       });
+
+      // Call the backend to spawn transceiver.py
+      await fetch("http://localhost:5000/start-transceiver", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: auth.currentUser.uid }),
+      })
+        .then((res) => res.text())
+        .then((msg) => console.log("Backend says:", msg))
+        .catch((err) => {
+          console.error("Error calling backend:", err);
+          setError("Failed to start transceiver on server.");
+        });
 
       setIsStreaming(true);
       setError(null);
@@ -160,7 +147,6 @@ const Streamer = () => {
 
   return (
     <div className="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 p-6 rounded-lg shadow-lg mx-auto mt-12 flex flex-col gap-12 max-w-screen-xl">
-      {/* Error Display */}
       {error && (
         <div className="bg-red-50 dark:bg-red-800 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-200 rounded-lg p-3 shadow-md">
           <span className="text-md font-semibold">{error}</span>
@@ -170,7 +156,6 @@ const Streamer = () => {
       <div className="flex flex-col flex-grow">
         <h2 className="text-3xl font-semibold mb-6">Streamer Mode</h2>
 
-        {/* Button to request camera access & load devices */}
         <button
           className="w-full py-4 bg-blue-500 dark:bg-blue-600 text-white font-semibold rounded-lg text-lg hover:bg-blue-600 dark:hover:bg-blue-700"
           onClick={requestCameraAccess}
@@ -178,7 +163,6 @@ const Streamer = () => {
           Request Camera Access
         </button>
 
-        {/* Camera Selector */}
         {videoDevices.length > 0 && (
           <div className="mt-6">
             <label className="block mb-2 text-lg">Select Camera:</label>
@@ -196,7 +180,6 @@ const Streamer = () => {
           </div>
         )}
 
-        {/* Start Streaming Button */}
         {isStreaming ? (
           <div className="text-center w-full py-4 bg-green-500 dark:bg-green-600 text-white font-semibold rounded-lg text-lg mt-6">
             Streaming...
@@ -212,7 +195,6 @@ const Streamer = () => {
         )}
       </div>
 
-      {/* Video Preview */}
       <div className="flex justify-center items-center bg-gray-100 dark:bg-gray-700 rounded-lg shadow-inner p-6 w-full lg:w-[800px] mx-auto">
         <video
           ref={webcamVideoRef}
