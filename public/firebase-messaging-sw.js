@@ -4,13 +4,13 @@
 
  // Initialize the Firebase app in the service worker by passing the generated config
  const firebaseConfig = {
-   apiKey: "YOURDATA",
-   authDomain: "YOURDATA",
-   projectId: "YOURDATA",
-   storageBucket: "YOURDATA",
-   messagingSenderId: "YOURDATA",
-   appId: "YOURDATA",
-   measurementId: "YOURDATA",
+  apiKey: "AIzaSyDW-vTVTDaoaAzCgVCegs2d_JUyaj-g7Js",
+  authDomain: "apms-python-server.firebaseapp.com",
+  projectId: "apms-python-server",
+  storageBucket: "apms-python-server.firebasestorage.app",
+  messagingSenderId: "104880636657",
+  appId: "1:104880636657:web:b1e4c0524d076c6fbd5f50",
+  measurementId: "G-V69FMTBMNG"
  };
 
  firebase.initializeApp(firebaseConfig);
