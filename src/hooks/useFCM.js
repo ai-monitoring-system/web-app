@@ -21,7 +21,7 @@ export async function requestPermissionAndGetToken(userId) {
 
     // 2. Retrieve the token from FCM
     // Make sure you have your public VAPID key here:
-    const VAPID_KEY = "BB9pSKDXbFXEDemZpqkrkoYg7ooOfmLOXx1SEexruQWpaHL-OidcsyEl324SQIW4F-qgh-hlVbOFJ1yQ2L43fOE	"; 
+    const VAPID_KEY = "BB9pSKDXbFXEDemZpqkrkoYg7ooOfmLOXx1SEexruQWpaHL-OidcsyEl324SQIW4F-qgh-hlVbOFJ1yQ2L43fOE"; 
     // (You get this from Firebase Console > Project Settings > Cloud Messaging > Web Push certificates)
 
     const token = await getToken(messaging, { vapidKey: VAPID_KEY });

@@ -133,11 +133,16 @@ const Viewer = () => {
 
   useEffect(() => {
     checkForCall(); // Automatically check for an available call on mount
-
+  
+    // Ensure the user is logged in before requesting the FCM token
+    if (auth.currentUser) {
+      requestPermissionAndGetToken(auth.currentUser.uid);
+    }
+  
     return () => {
       cleanupMediaResources(pcRef.current, remoteStreamRef.current, remoteVideoRef);
     };
-  }, []);
+  }, [auth.currentUser]); // Added dependency to run when user changes
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
