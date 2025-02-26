@@ -8,12 +8,15 @@ import {
 } from "firebase/firestore";
 import { auth, db, servers } from "./utils/config";
 import { collectIceCandidates, cleanupMediaResources } from "./utils/utils";
+import { requestPermissionAndGetToken } from "./hooks/useFCM";
+import { listenForForegroundMessages } from "./hooks/useFCM";
 
 const Viewer = () => {
   const [callId, setCallId] = useState("");
   const [hasJoined, setHasJoined] = useState(false);
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true); // Indicates if we are checking for a stream
+  const [loading, setLoading] = useState(true);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
   const remoteVideoRef = useRef(null);
   const pcRef = useRef(null);
@@ -35,7 +38,7 @@ const Viewer = () => {
       if (callDocSnapshot.exists()) {
         console.log("Stream found for user ID:", userId);
         setCallId(userId);
-        setError(null); // Clear any previous errors
+        setError(null);
       } else {
         console.error("Stream unavailable for user ID:", userId);
         setError("Stream unavailable. Please check with the streamer.");
@@ -56,6 +59,27 @@ const Viewer = () => {
     }
 
     try {
+      console.log("🔔 Requesting notification permission...");
+
+      // Ask for notification permission before joining
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        alert("❌ Notifications are required for this feature. Please enable them in your browser settings.");
+        return;
+      }
+
+      console.log("✅ Notification permission granted.");
+      
+      // Retrieve the FCM token
+      const token = await requestPermissionAndGetToken(auth.currentUser?.uid);
+      if (token) {
+        setNotificationsEnabled(true);
+        console.log("🔔 Notifications enabled! Token:", token);
+      } else {
+        alert("⚠️ Failed to get notification token. Please check your browser settings.");
+        return;
+      }
+
       console.log("Joining stream with Call ID:", callId);
 
       const pc = new RTCPeerConnection(servers);
@@ -64,9 +88,8 @@ const Viewer = () => {
       const remoteStream = new MediaStream();
       remoteStreamRef.current = remoteStream;
 
-      // Attach incoming tracks to the remote stream
       pc.ontrack = (event) => {
-        console.log("Track received from stream:", event.streams[0]);
+        console.log("🎥 Track received from stream:", event.streams[0]);
         event.streams[0].getTracks().forEach((track) => {
           remoteStream.addTrack(track);
         });
@@ -79,7 +102,6 @@ const Viewer = () => {
       const answerCandidates = collection(callDoc, "answerCandidates");
       const offerCandidates = collection(callDoc, "offerCandidates");
 
-      // Collect ICE candidates for the viewer
       collectIceCandidates(pc, answerCandidates);
 
       const callDocSnapshot = await getDoc(callDoc);
@@ -90,24 +112,21 @@ const Viewer = () => {
 
       console.log("Call data retrieved:", callData);
 
-      // Set the offer as the remote description
       const offerDescription = callData.offer;
       await pc.setRemoteDescription(new RTCSessionDescription(offerDescription));
-      console.log("Remote description set:", offerDescription);
+      console.log("📡 Remote description set:", offerDescription);
 
-      // Create and set the answer
       const answerDescription = await pc.createAnswer();
       await pc.setLocalDescription(answerDescription);
-      console.log("Answer created and set:", answerDescription);
+      console.log("✅ Answer created and set:", answerDescription);
 
       const answer = {
         type: answerDescription.type,
         sdp: answerDescription.sdp,
       };
       await setDoc(callDoc, { ...callData, answer });
-      console.log("Answer saved to Firestore:", answer);
+      console.log("📌 Answer saved to Firestore:", answer);
 
-      // Listen for offer candidates and add them to the connection
       onSnapshot(offerCandidates, (snapshot) => {
         snapshot.docChanges().forEach((change) => {
           if (change.type === "added") {
@@ -123,7 +142,7 @@ const Viewer = () => {
 
       setHasJoined(true);
       setError(null);
-      console.log("Successfully joined the stream.");
+      console.log("🎉 Successfully joined the stream.");
     } catch (error) {
       console.error("Error joining stream:", error);
       setError(error.message || "An error occurred while joining the stream.");
@@ -131,12 +150,17 @@ const Viewer = () => {
   };
 
   useEffect(() => {
-    checkForCall(); // Automatically check for an available call on mount
-
+    checkForCall(); // Check for an active stream
+  
+    if (auth.currentUser) {
+      requestPermissionAndGetToken(auth.currentUser.uid);
+      listenForForegroundMessages(); // ADD THIS LINE to enable foreground notifications
+    }
+  
     return () => {
       cleanupMediaResources(pcRef.current, remoteStreamRef.current, remoteVideoRef);
     };
-  }, []);
+  }, [auth.currentUser]);
 
   return (
     <div className="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 p-6 rounded-lg shadow-lg mx-auto mt-12 max-w-screen-xl">
@@ -169,10 +193,10 @@ const Viewer = () => {
                 <span className="text-md font-semibold">{error}</span>
               </div>
             ) : (
-              <div className="flex justify-center w-full">
+              <div className="flex flex-col items-center w-full max-w-[600px] mx-auto gap-4 mt-6">
                 <button
                   onClick={joinStream}
-                  className="w-full max-w-[300px] py-4 bg-green-500 dark:bg-green-600 text-white font-semibold rounded-lg text-lg transition duration-150 ease-in-out hover:bg-green-600 dark:hover:bg-green-700 mt-6"
+                  className="w-full py-4 bg-green-500 dark:bg-green-600 text-white font-semibold rounded-lg text-lg transition duration-150 ease-in-out hover:bg-green-600 dark:hover:bg-green-700"
                 >
                   Join Call
                 </button>
