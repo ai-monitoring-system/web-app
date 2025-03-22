@@ -1,5 +1,10 @@
 @import "./variables.scss";
 
+// Add global smooth scrolling
+:global(html) {
+  scroll-behavior: smooth;
+}
+
 .sectionWrapper {
   width: 100%;
   background-color: #fff;
@@ -104,25 +109,115 @@
   @include flex($direction: column, $align: center, $justify: center);
   width: 100%;
   min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+
+  .videoBackground {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -2;
+    filter: brightness(0.9) contrast(1.1);
+    transition: opacity 0.5s ease-in-out;
+  }
+
+  .fallbackBackground {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -2;
+    background-color: #1a1a2e; // Dark background color that matches the overall design
+  }
+
+  .hidden {
+    opacity: 0;
+  }
+
+  .videoLoadingIndicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: -1;
+    
+    .loadingSpinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #ffffff;
+      animation: spin 1s ease-in-out infinite;
+    }
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .videoOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    // Create a gradient overlay for better text readability
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.7) 0%,
+      rgba(0, 0, 0, 0.5) 50%,
+      rgba(0, 0, 0, 0.7) 100%
+    );
+    z-index: -1;
+  }
 
   .heading {
     @include font(
       $size: 7rem,
       $weight: 700,
       $lineHeight: 4.5rem,
-      $color: var(--secondary-color)
+      $color: #ffffff // Changed to white for better visibility
     );
     margin-bottom: 4rem;
     z-index: 1 !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); // Added text shadow for better readability
+    // Add letter spacing for better readability
+    letter-spacing: -0.02em;
+    // Add animation for text entrance
+    animation: fadeInUp 1s ease-out forwards;
   }
 
   .highlight {
-    color: var(--primary-color); // Highlighted text in primary color
+    color: #3B82F6; // Change highlight to blue to match the design
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); // Added text shadow for better readability
   }
 
   .description {
-    @include font($size: 1.5rem, $weight: 700, $color: var(--secondary-color));
+    @include font($size: 1.5rem, $weight: 700, $color: #ffffff); // Changed to white
     margin-bottom: 2rem;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8); // Added text shadow for better readability
+    max-width: 80%; // Limit width for better readability
+    text-align: center; // Ensure centered text
+    // Add animation with delay
+    animation: fadeInUp 1s ease-out 0.3s forwards;
+    opacity: 0; // Start invisible for animation
+    transform: translateY(20px); // Start slightly below for animation
+  }
+}
+
+// Add keyframes for animations
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
