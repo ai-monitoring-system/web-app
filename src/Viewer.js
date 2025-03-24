@@ -10,6 +10,14 @@ import { auth, db, servers } from "./utils/config";
 import { collectIceCandidates, cleanupMediaResources } from "./utils/utils";
 import { requestPermissionAndGetToken } from "./hooks/useFCM";
 import { listenForForegroundMessages } from "./hooks/useFCM";
+import { onMessage } from "firebase/messaging";
+import { messaging } from "./utils/config";
+import { FaBell, FaBellSlash } from "react-icons/fa";
+import { 
+  notifyStream, 
+  notifyInfo,
+  notifyWarning
+} from "./utils/notificationService";
 
 const Viewer = () => {
   const [callId, setCallId] = useState("");
@@ -17,6 +25,7 @@ const Viewer = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [isViewerNotificationEnabled, setIsViewerNotificationEnabled] = useState(true);
 
   const remoteVideoRef = useRef(null);
   const pcRef = useRef(null);
@@ -143,9 +152,23 @@ const Viewer = () => {
       setHasJoined(true);
       setError(null);
       console.log("🎉 Successfully joined the stream.");
+      
+      // Create a stream started notification
+      notifyStream(
+        "Stream Connected", 
+        "You have successfully joined the video stream.",
+        { streamId: callId, timestamp: Date.now() }
+      );
     } catch (error) {
       console.error("Error joining stream:", error);
       setError(error.message || "An error occurred while joining the stream.");
+      
+      // Create an error notification
+      notifyWarning(
+        "Stream Connection Issue", 
+        error.message || "Could not connect to the stream.",
+        { errorType: "connection", timestamp: Date.now() }
+      );
     }
   };
 
@@ -162,6 +185,33 @@ const Viewer = () => {
     };
   }, [auth.currentUser]);
 
+  // Setup FCM specific notification handling for the viewer
+  useEffect(() => {
+    if (hasJoined) {
+      const unsubscribe = onMessage(messaging, (payload) => {
+        console.log('Stream notification received:', payload);
+        
+        // Check if notifications are enabled for the viewer
+        if (isViewerNotificationEnabled && Notification.permission === 'granted') {
+          // Show system notification
+          new Notification(payload.notification?.title || 'Stream Alert', {
+            body: payload.notification?.body || 'New alert from your stream',
+            icon: '/favicon.ico'
+          });
+          
+          // Also add to our notifications system - this will appear in the notification dropdown
+          notifyStream(
+            payload.notification?.title || 'Stream Alert',
+            payload.notification?.body || 'New alert from your stream',
+            payload.data || {}
+          );
+        }
+      });
+      
+      return () => unsubscribe();
+    }
+  }, [hasJoined, isViewerNotificationEnabled]);
+
   return (
     <div className="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 p-6 rounded-lg shadow-lg mx-auto mt-12 max-w-screen-xl">
       {/* Header Section */}
@@ -169,15 +219,32 @@ const Viewer = () => {
         <h2 className="text-3xl font-semibold text-gray-800 dark:text-gray-100">
           Viewer Mode
         </h2>
-        {hasJoined && (
-          <div className="flex items-center gap-1 bg-green-50 dark:bg-green-800 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-200 rounded-md px-4 py-1 shadow-md">
-            <span className="text-sm font-semibold">Connected</span>
-            <div className="relative flex items-center justify-center w-3.5 h-3.5">
-              <span className="absolute inline-flex w-full h-full bg-green-500 opacity-75 rounded-full animate-ping"></span>
-              <span className="relative inline-flex w-2 h-2 bg-green-600 rounded-full"></span>
-            </div>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          {hasJoined && (
+            <>
+              <div className="flex items-center gap-1 bg-green-50 dark:bg-green-800 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-200 rounded-md px-4 py-1 shadow-md">
+                <span className="text-sm font-semibold">Connected</span>
+                <div className="relative flex items-center justify-center w-3.5 h-3.5">
+                  <span className="absolute inline-flex w-full h-full bg-green-500 opacity-75 rounded-full animate-ping"></span>
+                  <span className="relative inline-flex w-2 h-2 bg-green-600 rounded-full"></span>
+                </div>
+              </div>
+              
+              {/* Notification toggle button with proper icon */}
+              <button 
+                onClick={() => setIsViewerNotificationEnabled(!isViewerNotificationEnabled)}
+                className={`p-2 rounded-md transition-all duration-200 ${
+                  isViewerNotificationEnabled 
+                    ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' 
+                    : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
+                }`}
+                title={isViewerNotificationEnabled ? 'Disable notifications' : 'Enable notifications'}
+              >
+                {isViewerNotificationEnabled ? <FaBell /> : <FaBellSlash />}
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Main Content */}
