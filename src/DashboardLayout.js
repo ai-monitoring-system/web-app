@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import {
   FaCog,
@@ -27,6 +27,12 @@ import { useTheme } from './context/ThemeContext';
 import { adjustColor } from './utils/colorUtils';
 import { useAuth } from './context/AuthContext';
 import { LoadingSpinner } from './components/shared/LoadingSpinner';
+import NotificationDropdown from "./components/notifications/NotificationDropdown";
+import { 
+  initNotificationService, 
+  addNotificationListener, 
+  notifyInfo 
+} from "./utils/notificationService";
 
 const DashboardLayout = () => {
   const location = useLocation();
@@ -35,6 +41,10 @@ const DashboardLayout = () => {
   const [isStreaming, setIsStreaming] = useState(false);
   const [viewerMode, setViewerMode] = useState(false);
   const [streamerMode, setStreamerMode] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] = useState(false);
+  const notificationRef = useRef(null);
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   const { user, logout, authLoading } = useAuth();
 
@@ -162,6 +172,62 @@ const DashboardLayout = () => {
 
   const selectedPage = getSelectedPage(location.pathname);
 
+  // Handle outside click to close dropdown
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setIsNotificationDropdownOpen(false);
+      }
+    }
+    
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Initialize notification service once when the component mounts
+  useEffect(() => {
+    const unsubscribe = initNotificationService();
+    
+    // Add a listener for new notifications
+    const removeListener = addNotificationListener((notification) => {
+      setNotifications(prev => [notification, ...prev]);
+    });
+    
+    return () => {
+      unsubscribe();
+      removeListener();
+    };
+  }, []);
+
+  const handleMarkAsRead = (id) => {
+    setNotifications(prev => 
+      prev.map(notification => 
+        notification.id === id 
+          ? { ...notification, read: true } 
+          : notification
+      )
+    );
+  };
+
+  const handleClearAllNotifications = () => {
+    setNotifications([]);
+  };
+
+  const toggleNotificationDropdown = () => {
+    setIsNotificationDropdownOpen(!isNotificationDropdownOpen);
+    
+    // If opening the dropdown, mark all as read after a short delay
+    if (!isNotificationDropdownOpen) {
+      setTimeout(() => {
+        setNotifications(prev => 
+          prev.map(notification => ({ ...notification, read: true }))
+        );
+      }, 3000);
+    }
+  };
+
   return (
     <div className={`${themeSettings.darkMode ? "dark" : ""}`}>
       <div className="flex min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 animate__animated animate__fadeIn">
@@ -247,7 +313,30 @@ const DashboardLayout = () => {
                 title="Search"
               />
               
-              <FaBell className="text-gray-800 dark:text-gray-300 text-xl cursor-pointer hover:scale-110 transition-transform" title="Notifications" />
+              <div className="relative" ref={notificationRef}>
+                <button 
+                  onClick={toggleNotificationDropdown}
+                  className="relative text-gray-800 dark:text-gray-300 text-xl cursor-pointer hover:scale-110 transition-transform focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-full p-2"
+                  aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ''}`}
+                  title="Notifications"
+                >
+                  <FaBell />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </button>
+                
+                <NotificationDropdown 
+                  notifications={notifications}
+                  isOpen={isNotificationDropdownOpen}
+                  onClose={() => setIsNotificationDropdownOpen(false)}
+                  onClearAll={handleClearAllNotifications}
+                  onMarkAsRead={handleMarkAsRead}
+                />
+              </div>
+              
               <FaHeart className="text-red-500 text-xl cursor-pointer hover:scale-110 transition-transform" title="Favorites" />
               <FaCog 
                 className="text-gray-800 dark:text-gray-300 text-xl cursor-pointer hover:scale-110 transition-transform" 

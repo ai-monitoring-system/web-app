@@ -39,7 +39,9 @@ const Navbar = () => {
       <div className="flex justify-between items-center w-full max-w-6xl mx-auto">
         {/* Logo */}
         <div
-          className="text-2xl font-extrabold text-gray-800 mr-3 cursor-pointer"
+          className={`text-2xl font-extrabold mr-3 cursor-pointer ${
+            isScrolled ? "text-gray-800" : "text-white"
+          }`}
           onClick={scrollToTop}
         >
           <img
@@ -47,7 +49,10 @@ const Navbar = () => {
             alt="Logo"
             className="inline-block h-12 w-12 mr-2" // Reduced logo size slightly
           />
-          <span className="text-blue-500">AI</span> Monitoring System
+          <span className="text-blue-500">AI</span>{" "}
+          <span className={isScrolled ? "text-gray-800" : "text-white"}>
+            Monitoring System
+          </span>
         </div>
 
         {/* Navigation Links */}
@@ -55,7 +60,11 @@ const Navbar = () => {
           {/* Sign In Button */}
           <a
             href="/signin"
-            className="nav-link text-gray-800 text-xl font-semibold py-2 px-6 rounded-lg transition duration-200 ease-in-out hover:text-blue-500 hover:shadow-lg focus:outline-none no-underline hover:no-underline"
+            className={`nav-link text-xl font-semibold py-2 px-6 rounded-lg transition duration-200 ease-in-out hover:shadow-lg focus:outline-none no-underline hover:no-underline ${
+              isScrolled 
+                ? "text-gray-800 hover:text-blue-500" 
+                : "text-white hover:text-white"
+            }`}
           >
             Sign In
           </a>

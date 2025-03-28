@@ -21,7 +21,8 @@ const MainStartupPage = () => {
   }, []);
 
   return (
-    <div className="bg-[#FFFBF0] min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col">
+      {/* Commented out background-color: rgb(255 251 240) */}
       {/* Navbar */}
       <header
         className={`fixed top-0 left-0 w-full z-20 transition-transform duration-300 ${
@@ -54,14 +55,14 @@ const MainStartupPage = () => {
       />
 
       {/* Dynamic Sections */}
-      <main className="py-0 space-y-0 flex-grow"> {/* Remove gap between sections */}
+      <main className="py-0 space-y-0 flex-grow">
         {sections.map((section, index) => (
           <Section
             key={index}
             heading={section.heading}
             description={section.description}
-            buttonLabel={section.buttonLabel} // Use null-safe access from the data
-            buttonHref={section.buttonHref} // Pass only if provided in the data
+            buttonLabel={section.buttonLabel}
+            buttonHref={section.buttonHref}
             image={section.image}
             reverse={section.reverse}
           />
