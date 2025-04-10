@@ -85,48 +85,6 @@ const DashboardHome = () => {
         })}
       </section>
 
-      {/* Stats Overview */}
-      <section
-        ref={statsRef}
-        className={`grid grid-cols-1 sm:grid-cols-3 gap-6 mt-6 transition-all duration-500 ${
-          statsInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-        }`}
-      >
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md flex items-center space-x-4">
-          <FaChartLine className="text-3xl text-blue-500" />
-          <div>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Total Streams
-            </p>
-            <p className="text-lg font-bold text-gray-800 dark:text-gray-100">
-              120
-            </p>
-          </div>
-        </div>
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md flex items-center space-x-4">
-          <FaEye className="text-3xl text-green-500" />
-          <div>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Total Viewers
-            </p>
-            <p className="text-lg font-bold text-gray-800 dark:text-gray-100">
-              450
-            </p>
-          </div>
-        </div>
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md flex items-center space-x-4">
-          <FaVideo className="text-3xl text-yellow-500" />
-          <div>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Recorded Videos
-            </p>
-            <p className="text-lg font-bold text-gray-800 dark:text-gray-100">
-              75
-            </p>
-          </div>
-        </div>
-      </section>
-
       {/* Render Streamer or Viewer Components */}
       <div className="mt-8">
         {!auth.currentUser ? (
