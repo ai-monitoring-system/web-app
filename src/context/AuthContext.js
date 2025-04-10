@@ -1,16 +1,20 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { 
-  signInWithPopup, 
+import { createContext, useContext, useState, useEffect } from "react";
+import {
+  signInWithPopup,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  GoogleAuthProvider,
-  updateProfile
-} from 'firebase/auth';
-import { auth, googleProvider, githubProvider, getAuthErrorMessage } from '../utils/config';
-import { useNavigate } from 'react-router-dom';
-import { PageLoader } from '../components/shared/LoadingSpinner';
+  updateProfile,
+} from "firebase/auth";
+import {
+  auth,
+  googleProvider,
+  githubProvider,
+  getAuthErrorMessage,
+} from "../utils/config";
+import { useNavigate } from "react-router-dom";
+import { PageLoader } from "../components/shared/LoadingSpinner";
 
 const AuthContext = createContext({});
 
@@ -23,9 +27,18 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+  const passwordMessage =
+    "Password must contain at least 6 characters, one letter, and one number.";
+
+  const validatePassword = (password) => {
+    return (
+      password.length >= 6 && /[a-zA-Z]/.test(password) && /\d/.test(password)
+    );
+  };
+
   // Add navigation handlers
   const handleAuthSuccess = () => {
-    navigate('/');
+    navigate("/");
     setError(null);
   };
 
@@ -80,13 +93,17 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       setAuthLoading(true);
-      const result = await createUserWithEmailAndPassword(auth, email, password);
-      
+      const result = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
       // Update profile with display name if provided
       if (displayName) {
         await updateProfile(result.user, { displayName });
       }
-      
+
       return result.user;
     } catch (err) {
       setError(err.message);
@@ -102,7 +119,7 @@ export const AuthProvider = ({ children }) => {
       setError(null);
       setAuthLoading(true);
       await signOut(auth);
-      navigate('/welcome');
+      navigate("/welcome");
     } catch (err) {
       handleAuthError(err);
       throw err;
@@ -150,12 +167,13 @@ export const AuthProvider = ({ children }) => {
     loading,
     authLoading,
     error,
+    validatePassword,
+    passwordMessage,
     signInWithGoogle,
     signInWithGithub,
     signInWithEmail,
     signUpWithEmail,
     logout,
-    updateUserProfile
   };
 
   return (
@@ -163,4 +181,4 @@ export const AuthProvider = ({ children }) => {
       {loading ? <PageLoader /> : children}
     </AuthContext.Provider>
   );
-}; 
+};

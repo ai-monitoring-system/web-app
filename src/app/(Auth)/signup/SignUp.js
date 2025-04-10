@@ -4,29 +4,29 @@ import {
   Button,
   Panel,
   InputGroup,
-  Checkbox,
   Divider,
 } from "rsuite";
 import EyeIcon from "@rsuite/icons/legacy/Eye";
 import EyeSlashIcon from "@rsuite/icons/legacy/EyeSlash";
 import { Link, useNavigate } from "react-router-dom";
 import "animate.css";
+import { useAuth } from "../../../context/AuthContext";
 
 const SignUp = () => {
   const navigate = useNavigate();
-  const [visible, setVisible] = useState(false); // For password visibility
+  const { signUpWithEmail, validatePassword, passwordMessage } = useAuth();
+  const [visible, setVisible] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
     confirmPassword: "",
-    agreed: false,
   });
-  const [fieldErrors, setFieldErrors] = useState({}); // Errors for individual fields
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const handleInputChange = (value, name) => {
     setFormData({ ...formData, [name]: value });
-    setFieldErrors({ ...fieldErrors, [name]: "" }); // Clear specific field error
+    setFieldErrors({ ...fieldErrors, [name]: "" });
   };
 
   const validateForm = () => {
@@ -42,36 +42,47 @@ const SignUp = () => {
     }
     if (!formData.password) {
       errors.password = "Password is required.";
-    } else if (formData.password.length < 6) {
-      errors.password = "Password must be at least 6 characters.";
+    } else if (!validatePassword(formData.password)) {
+      errors.password = passwordMessage;
     }
-    if (formData.password !== formData.confirmPassword) {
+    if (!formData.confirmPassword) {
+      errors.confirmPassword = "Please confirm your password.";
+    } else if (formData.password !== formData.confirmPassword) {
       errors.confirmPassword = "Passwords do not match.";
-    }
-    if (!formData.agreed) {
-      errors.agreed = "You must agree to the terms and conditions.";
     }
 
     setFieldErrors(errors);
-    return Object.keys(errors).length === 0; // Return true if no errors
+    return Object.keys(errors).length === 0;
   };
 
-  const handleSubmit = () => {
-    if (!validateForm()) {
-      return;
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
+
+    try {
+      await signUpWithEmail(
+        formData.email,
+        formData.password,
+        formData.username
+      );
+      navigate("/sign-in");
+    } catch (err) {
+      console.error("Sign up error:", err);
+      if (err.code === "auth/email-already-in-use") {
+        setFieldErrors((prev) => ({
+          ...prev,
+          email: "This email is already registered.",
+        }));
+      } else {
+        setFieldErrors((prev) => ({
+          ...prev,
+          general: err.message || "Failed to sign up. Please try again.",
+        }));
+      }
     }
-
-    // Simulate API call or Firebase integration
-    console.log("Sign-up data submitted:", formData);
-
-    // Redirect to the sign-in page after successful registration
-    navigate("/sign-in");
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 to-indigo-700 p-8 animate__animated animate__fadeIn"
-    >
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 to-indigo-700 p-8 animate__animated animate__fadeIn">
       <Panel
         bordered
         className="animate__animated animate__zoomIn animate__faster"
@@ -105,6 +116,12 @@ const SignUp = () => {
         >
           Join us and explore our amazing platform. It only takes a few steps!
         </p>
+
+        {fieldErrors.general && (
+          <div className="text-red-500 text-sm text-center mb-4">
+            {fieldErrors.general}
+          </div>
+        )}
 
         <Form fluid>
           {/* Username */}
@@ -216,9 +233,7 @@ const SignUp = () => {
               type="password"
               placeholder="Confirm your password"
               value={formData.confirmPassword}
-              onChange={(value) =>
-                handleInputChange(value, "confirmPassword")
-              }
+              onChange={(value) => handleInputChange(value, "confirmPassword")}
               style={{
                 borderRadius: "8px",
                 padding: "12px",
@@ -228,39 +243,6 @@ const SignUp = () => {
             {fieldErrors.confirmPassword && (
               <div className="text-red-500 text-sm mt-1">
                 {fieldErrors.confirmPassword}
-              </div>
-            )}
-          </Form.Group>
-
-          {/* Terms and Conditions */}
-          <Form.Group>
-            <Checkbox
-              checked={formData.agreed}
-              onChange={(value, checked) =>
-                setFormData((prev) => ({ ...prev, agreed: checked }))
-              }
-              style={{
-                marginBottom: "20px",
-                color: "#374151",
-                fontSize: "16px",
-              }}
-            >
-              I agree to the{" "}
-              <a
-                href="#terms"
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  color: "#2563eb",
-                  textDecoration: "underline",
-                }}
-              >
-                Terms and Conditions
-              </a>
-            </Checkbox>
-            {fieldErrors.agreed && (
-              <div className="text-red-500 text-sm mt-1">
-                {fieldErrors.agreed}
               </div>
             )}
           </Form.Group>

@@ -1,13 +1,20 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaGoogle, FaGithub } from "react-icons/fa";
-import { useAuth } from '../../../context/AuthContext';
+import { FaGoogle } from "react-icons/fa";
+import { useAuth } from "../../../context/AuthContext";
 import "animate.css";
-import { LoadingSpinner } from '../../../components/shared/LoadingSpinner';
+import { LoadingSpinner } from "../../../components/shared/LoadingSpinner";
 
 const SignIn = () => {
   const navigate = useNavigate();
-  const { signInWithGoogle, signInWithGithub, authLoading, error } = useAuth();
+  const {
+    signInWithEmail,
+    signInWithGoogle,
+    validatePassword,
+    passwordMessage,
+    authLoading,
+    error,
+  } = useAuth();
   const [localError, setLocalError] = useState("");
 
   const handleGoogleSignIn = async () => {
@@ -19,24 +26,39 @@ const SignIn = () => {
     }
   };
 
-  const handleGithubSignIn = async () => {
+  const handleSignIn = async () => {
+    const email = document.getElementById("email").value;
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(email)) {
+      setLocalError("Please enter a valid email address.");
+      return;
+    }
+    const password = document.getElementById("password").value;
+    if (!validatePassword(password)) {
+      setLocalError("Invalid password. " + passwordMessage);
+      return;
+    }
+    setLocalError("");
     try {
-      setLocalError("");
-      await signInWithGithub();
+      await signInWithEmail(email, password);
+      navigate("/dashboard");
     } catch (err) {
-      setLocalError(err.message);
+      if (err.code === "auth/invalid-credential") {
+        setLocalError("Incorrect email/password. Please try again.");
+      } else if (err.code === "auth/too-many-requests") {
+        setLocalError("Too many attempts. Please try again later.");
+      } else {
+        setLocalError(err.message);
+      }
     }
   };
 
-  const displayError = error || localError;
+  // Local error takes precedence over global auth error
+  const displayError = localError || error;
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 to-indigo-700 p-8 animate__animated animate__fadeIn"
-    >
-      <div
-        className="bg-white dark:bg-gray-800 px-16 py-12 rounded-lg shadow-lg w-full max-w-2xl animate__animated animate__zoomIn animate__faster"
-      >
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 to-indigo-700 p-8 animate__animated animate__fadeIn">
+      <div className="bg-white dark:bg-gray-800 px-16 py-12 rounded-lg shadow-lg w-full max-w-2xl animate__animated animate__zoomIn animate__faster">
         <h1 className="text-4xl font-bold text-center text-gray-800 dark:text-gray-100 mb-8">
           Welcome Back
         </h1>
@@ -87,6 +109,7 @@ const SignIn = () => {
         {/* Sign In Button */}
         <button
           className="w-full py-3 bg-blue-600 text-white text-lg rounded-md font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-150"
+          onClick={handleSignIn}
         >
           Sign In
         </button>
@@ -94,7 +117,7 @@ const SignIn = () => {
         {/* Social Sign-In */}
         <div className="mt-10">
           <p className="text-center text-lg text-gray-500 dark:text-gray-400 mb-6">
-            Or sign in with
+            ——— &nbsp; OR &nbsp; ———
           </p>
           <div className="flex justify-center space-x-6">
             <button
@@ -111,20 +134,6 @@ const SignIn = () => {
                 </>
               )}
             </button>
-            <button
-              onClick={handleGithubSignIn}
-              disabled={authLoading}
-              className="flex items-center justify-center px-6 py-3 bg-gray-800 text-white text-lg font-medium rounded-md hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {authLoading ? (
-                <LoadingSpinner size="sm" light />
-              ) : (
-                <>
-                  <FaGithub className="mr-3 text-2xl" />
-                  Sign in with GitHub
-                </>
-              )}
-            </button>
           </div>
         </div>
 
@@ -132,7 +141,7 @@ const SignIn = () => {
         <p className="text-center text-lg mt-8 text-gray-500 dark:text-gray-400">
           Don’t have an account?{" "}
           <span
-            onClick={() => navigate("/signup")}
+            onClick={() => navigate("/sign-up")}
             className="text-blue-600 dark:text-blue-400 font-bold cursor-pointer hover:underline"
           >
             Sign Up
