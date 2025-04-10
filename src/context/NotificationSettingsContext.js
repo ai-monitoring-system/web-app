@@ -28,13 +28,16 @@ export const NotificationSettingsProvider = ({ children }) => {
           const docSnap = await getDoc(userRef);
           if (docSnap.exists()) {
             const data = docSnap.data();
+            const settings = data.settings || {};
             const newSettings = {
-              enabled: data.notificationsEnabled !== undefined
-                ? data.notificationsEnabled
+              enabled: settings.notificationsEnabled !== undefined
+                ? settings.notificationsEnabled
                 : defaultNotifSettings.enabled,
               // Determine the slider index from the stored cooldown in seconds.
-              cooldown: cooldownMapping.indexOf(data.notifCooldown) !== -1
-                ? cooldownMapping.indexOf(data.notifCooldown)
+              cooldown: settings.notifCooldown
+                ? cooldownMapping.indexOf(settings.notifCooldown) !== -1
+                  ? cooldownMapping.indexOf(settings.notifCooldown)
+                  : defaultNotifSettings.cooldown
                 : defaultNotifSettings.cooldown,
             };
             setNotifSettings(newSettings);
@@ -60,8 +63,10 @@ export const NotificationSettingsProvider = ({ children }) => {
       try {
         const userRef = doc(db, "users", user.uid);
         await setDoc(userRef, {
-          notifCooldown: cooldownMapping[stagedNotifSettings.cooldown],
-          notificationsEnabled: stagedNotifSettings.enabled,
+          settings: {
+            notifCooldown: cooldownMapping[stagedNotifSettings.cooldown],
+            notificationsEnabled: stagedNotifSettings.enabled,
+          }
         }, { merge: true });
       } catch (err) {
         console.error("Error updating notification settings in Firestore:", err);
