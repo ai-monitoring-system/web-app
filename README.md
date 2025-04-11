@@ -64,15 +64,17 @@ Include an overview of the wireflow here, showcasing the main screens and flow o
    - **Backend**:
      ```bash
      cd backend
-     pip install -r requirements.txt  # or npm install if using Node.js
-     python app.py  # or node app.js if using Node.js
+     npm install
+     pip install -r requirements.txt
+     node server.js
      ```
 
 3. **Configure Devices**:
    Follow the instructions in `devices/README.md` to configure your device for streaming.
 
 4. **Run the Application**:
-   Access the web app at `http://localhost:3000` (or the configured port).
+   Go to https://4990.tanzimfh.com/ (The backend still needs to run manually on the streamer's device)
+   If running the frontend locally: Access the web app at `http://localhost:3000` (or the configured port).
 
 ---
 
