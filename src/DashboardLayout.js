@@ -3,7 +3,6 @@ import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import {
   FaCog,
   FaHeart,
-  FaVideo,
   FaHome,
   FaBars,
   FaMoon,
@@ -13,7 +12,6 @@ import {
   FaQuestionCircle,
   FaCircle,
   FaVideo as FaStreaming,
-  FaPowerOff,
   FaEye,
   FaSearch,
   FaSignOutAlt,
@@ -21,7 +19,6 @@ import {
 import SidebarButton from "./components/layout/SidebarButton";
 import Profile from "./components/dashboard/Profile";
 import Settings from "./components/dashboard/Settings";
-import VideoStorage from "./components/dashboard/VideoStorage";
 import DashboardHome from "./components/dashboard/DashboardHome";
 import { useTheme } from './context/ThemeContext';
 import { adjustColor } from './utils/colorUtils';
@@ -159,8 +156,6 @@ const DashboardLayout = () => {
     switch (path) {
       case '/':
         return 'Home';
-      case '/videoStorage':
-        return 'Video Storage';
       case '/profile':
         return 'Profile';
       case '/settings':
@@ -259,13 +254,6 @@ const DashboardLayout = () => {
               label="Dashboard"
               icon={<FaHome />}
               isSelected={selectedPage === "Dashboard"}
-              isCollapsed={isSidebarCollapsed}
-            />
-            <SidebarButton
-              path="/videoStorage"
-              label="Video Storage"
-              icon={<FaVideo />}
-              isSelected={selectedPage === "videoStorage"}
               isCollapsed={isSidebarCollapsed}
             />
             <SidebarButton
@@ -426,7 +414,6 @@ const DashboardLayout = () => {
           <main className="flex-grow p-6 animate__animated animate__fadeIn">
             <Routes>
               <Route path="/" element={<DashboardHome />} />
-              <Route path="/videoStorage" element={<VideoStorage />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/settings" element={<Settings />} />
             </Routes>

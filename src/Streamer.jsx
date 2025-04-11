@@ -9,6 +9,8 @@ const Streamer = () => {
   const [videoDevices, setVideoDevices] = useState([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState("");
   const [error, setError] = useState(null);
+  // New state to know when camera access is granted.
+  const [hasCameraAccess, setHasCameraAccess] = useState(false);
 
   const pcRef = useRef(null);
   const webcamVideoRef = useRef(null);
@@ -16,6 +18,7 @@ const Streamer = () => {
 
   const requestCameraAccess = async () => {
     try {
+      // Request minimal permission first.
       await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
       const devices = await navigator.mediaDevices.enumerateDevices();
       const videoInputs = devices.filter((d) => d.kind === "videoinput");
@@ -43,9 +46,13 @@ const Streamer = () => {
       localStreamRef.current = localStream;
       if (webcamVideoRef.current) {
         webcamVideoRef.current.srcObject = localStream;
-        webcamVideoRef.current.play().catch((e) => console.error("Play error:", e));
+        webcamVideoRef.current
+          .play()
+          .catch((e) => console.error("Play error:", e));
       }
       console.log("Camera started successfully.");
+      // Update state so UI knows camera access is granted.
+      setHasCameraAccess(true);
     } catch (err) {
       console.error("Error accessing media devices:", err);
       setError("Failed to start camera. Please check device permissions.");
@@ -58,7 +65,11 @@ const Streamer = () => {
     }
     // Cleanup media resources on unmount
     return () => {
-      cleanupMediaResources(pcRef.current, localStreamRef.current, webcamVideoRef);
+      cleanupMediaResources(
+        pcRef.current,
+        localStreamRef.current,
+        webcamVideoRef
+      );
     };
   }, [selectedDeviceId]);
 
@@ -83,6 +94,7 @@ const Streamer = () => {
       });
 
       const callDoc = doc(db, "calls", auth.currentUser.uid);
+      // Note: In modular Firestore you need to create a subcollection using collection()
       const offerCandidates = collection(callDoc, "offerCandidates");
       const answerCandidates = collection(callDoc, "answerCandidates");
       setCallId(callDoc.id);
@@ -156,12 +168,15 @@ const Streamer = () => {
       <div className="flex flex-col flex-grow">
         <h2 className="text-3xl font-semibold mb-6">Streamer Mode</h2>
 
-        <button
-          className="w-full py-4 bg-blue-500 dark:bg-blue-600 text-white font-semibold rounded-lg text-lg hover:bg-blue-600 dark:hover:bg-blue-700"
-          onClick={requestCameraAccess}
-        >
-          Request Camera Access
-        </button>
+        {/* Show "Request Camera Access" button only if camera not yet accessed */}
+        {!hasCameraAccess && (
+          <button
+            className="w-full py-4 bg-blue-500 dark:bg-blue-600 text-white font-semibold rounded-lg text-lg hover:bg-blue-600 dark:hover:bg-blue-700"
+            onClick={requestCameraAccess}
+          >
+            Request Camera Access
+          </button>
+        )}
 
         {videoDevices.length > 0 && (
           <div className="mt-6">
@@ -180,11 +195,8 @@ const Streamer = () => {
           </div>
         )}
 
-        {isStreaming ? (
-          <div className="text-center w-full py-4 bg-green-500 dark:bg-green-600 text-white font-semibold rounded-lg text-lg mt-6">
-            Streaming...
-          </div>
-        ) : (
+        {/* If camera access is granted and not streaming, show Start Streaming button */}
+        {hasCameraAccess && !isStreaming && (
           <button
             type="button"
             onClick={startStreaming}
@@ -192,6 +204,12 @@ const Streamer = () => {
           >
             Start Streaming
           </button>
+        )}
+
+        {isStreaming && (
+          <div className="text-center w-full py-4 bg-green-500 dark:bg-green-600 text-white font-semibold rounded-lg text-lg mt-6">
+            Streaming...
+          </div>
         )}
       </div>
 
