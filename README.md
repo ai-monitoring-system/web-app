@@ -45,13 +45,17 @@ npm start
 
 ---
 
-## How It Works
+## Testing
 
-1. **Login** using Firebase Authentication.
-2. Once authenticated, the app checks for an active video stream session in Firestore.
-3. When the user joins a stream, WebRTC connects the user to the backend peer.
-4. If AI detects a person, the backend writes a `notifications` document and sends an FCM push to the user's browser.
-5. Notifications are received even when the app is in the foreground.
+To test the system:
+
+1. **Start the backend Python server** and begin streaming.
+2. **Open the frontend**, log in, and click **Join Call**.
+3. Once connected, **approach the camera** or move into its field of view.
+4. The YOLO model will detect a person approaching and trigger a push notification.
+5. Ensure notification permission is granted in your browser.
+
+> If no notification appears, check the browser's notification settings and the console for any errors.
 
 ---
 
